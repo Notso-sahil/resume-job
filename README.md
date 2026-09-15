@@ -22,6 +22,8 @@ If you are cloning this repository and running the **BrowseAI Extension**, you *
 
 1. **Install Browser Agent Dependencies**: Navigate to `BrowseAI/` and run `pnpm install` (this fixes `MODULE_NOT_FOUND @modelcontextprotocol/sdk` errors).
 2. **Register the Native Host**: Still in `BrowseAI/`, run `npm run register` to register the Native Messaging Host with Chrome.
+<img width="935" height="651" alt="Screenshot 2026-09-15 195645" src="https://github.com/user-attachments/assets/3f625c86-0a6d-442d-a883-1e8533d9e2bf" />
+
 3. **The Extension ID Trap**: 
    - Load the unpacked extension in Chrome (`BrowseAI/packages/extension/.output/chrome-mv3`).
    - Chrome will assign a **random Extension ID**.
