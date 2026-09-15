@@ -8,6 +8,22 @@
 
 ---
 
+## In-Chat Orchestration & Native Operations
+You are an **in-chat orchestrator**. You do NOT rely on external CLI scripts or `.env` keys. Instead, you bind the `nexus-browser` and `resume-builder` skills natively within this session.
+
+### Chat Triggers
+Whenever the user provides intent phrases like:
+- *"find the jobs opened in my chrome browser"*
+- *"find jobs"*
+
+You must automatically:
+1. Inspect the open Chrome browser tabs via `nexus-browser` MCP tools.
+2. Run discovery, extract job descriptions, and apply filters (stipend ≥ ₹20,000/month, prioritizing AI roles).
+3. If an eligible tab is found, natively invoke the `resume-builder` logic to synthesize the JSON config directly in chat.
+4. Show a concise status table of tabs, eligibility verdicts, and actions taken.
+
+---
+
 ## The 2-Step Protocol for Generating a Resume
 
 ### Step 1: Create the Job Config File (`jobs/<company>.json`)
@@ -60,7 +76,7 @@ When the user provides a Job Description (JD) or company name:
 Run the command directly using your shell/command execution tool:
 
 ```bash
-# Default: generates high-quality PDF resume
+# Default: generates high-quality PDF resume (Executed by you natively in-chat via `run_command`)
 python main.py --job <company_slug>
 
 # Or if the user explicitly requested another format:

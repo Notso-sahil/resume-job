@@ -16,6 +16,23 @@
 
 ---
 
+## ⚠️ Critical First-Time Setup & Gotchas (MUST READ)
+
+If you are cloning this repository and running the **BrowseAI Extension**, you **must** complete these steps to avoid connection errors:
+
+1. **Install Browser Agent Dependencies**: Navigate to `BrowseAI/` and run `pnpm install` (this fixes `MODULE_NOT_FOUND @modelcontextprotocol/sdk` errors).
+2. **Register the Native Host**: Still in `BrowseAI/`, run `npm run register` to register the Native Messaging Host with Chrome.
+3. **The Extension ID Trap**: 
+   - Load the unpacked extension in Chrome (`BrowseAI/packages/extension/.output/chrome-mv3`).
+   - Chrome will assign a **random Extension ID**.
+   - You MUST open `C:\Users\<YourUsername>\AppData\Roaming\Google\Chrome\NativeMessagingHosts\com.nexusai.browserhost.json` and add your exact Extension ID to the `allowed_origins` list (e.g., `"chrome-extension://<YOUR_NEW_ID>/"`).
+   - Reload the extension in Chrome.
+4. **Update Antigravity MCP Config**: Ensure `~/.gemini/config/mcp_config.json` points to the exact absolute path of `BrowseAI/packages/bridge/dist/mcp/mcp-server-stdio.js`.
+5. **Wake the Bridge**: Click the BrowseAI extension icon in Chrome before starting the agent to wake the service worker (fixes `ECONNREFUSED` errors).
+6. **Form Filling**: When the AI halts before the final submit button (as per safety rules), be aware of strict formatting validations (e.g., passing `+` to digit-only phone fields will throw an error).
+
+---
+
 ## 🌟 Key Capabilities
 
 - **🧠 Smart Candidate Profile Caching**: Extracts contact details, education, and work experience from your uploaded resume PDF. Automatically caches to `output/candidate_profile.json` so repeat runs execute instantly without prompts.

@@ -60,3 +60,4 @@ applications.db
 finder/__pycache__/
 finder/tests/__pycache__/
 screenshots/
+*.docx

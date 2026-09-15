@@ -61,24 +61,17 @@ def deconstruct_jd_node(state: AgentState) -> Dict[str, Any]:
     raw_jd = state.get("raw_jd", "")
     llm = get_llm()
 
-    try:
-        if hasattr(llm, "with_structured_output"):
-            structured_llm = llm.with_structured_output(JDDeconstruction)
-            prompt = JD_EXTRACTION_PROMPT.format(raw_jd=raw_jd)
-            jd_analysis = structured_llm.invoke(prompt)
-            if isinstance(jd_analysis, dict):
-                jd_analysis = JDDeconstruction(**jd_analysis)
-            if not getattr(jd_analysis, "soft_skills", None):
-                jd_analysis.soft_skills = DEFAULT_SOFT_SKILLS  # type: ignore
-            return {"jd_analysis": jd_analysis}
-    except Exception:
-        pass
-
-    # Fallback/Native deconstruction
-    fallback_analysis = fallback_synthesize(raw_jd, JDDeconstruction)
-    if not getattr(fallback_analysis, "soft_skills", None):
-        fallback_analysis.soft_skills = DEFAULT_SOFT_SKILLS  # type: ignore
-    return {"jd_analysis": fallback_analysis}
+    if hasattr(llm, "with_structured_output"):
+        structured_llm = llm.with_structured_output(JDDeconstruction)
+        prompt = JD_EXTRACTION_PROMPT.format(raw_jd=raw_jd)
+        jd_analysis = structured_llm.invoke(prompt)
+        if isinstance(jd_analysis, dict):
+            jd_analysis = JDDeconstruction(**jd_analysis)
+        if not getattr(jd_analysis, "soft_skills", None):
+            jd_analysis.soft_skills = DEFAULT_SOFT_SKILLS  # type: ignore
+        return {"jd_analysis": jd_analysis}
+    
+    raise ValueError("LLM failed to generate structured JDDeconstruction. No fallback available.")
 
 
 def synthesize_projects_node(state: AgentState) -> Dict[str, Any]:
@@ -104,30 +97,22 @@ def synthesize_projects_node(state: AgentState) -> Dict[str, Any]:
 
     llm = get_llm()
 
-    try:
-        if hasattr(llm, "with_structured_output"):
-            from pydantic import BaseModel
-            class ProjectsContainer(BaseModel):
-                projects: List[ProjectSpec]
+    if hasattr(llm, "with_structured_output"):
+        from pydantic import BaseModel
+        class ProjectsContainer(BaseModel):
+            projects: List[ProjectSpec]
 
-            structured_llm = llm.with_structured_output(ProjectsContainer)
-            # Build JD-aware dynamic prompt (resolves archetypes, injects JD stack)
-            full_prompt = build_synthesis_prompt(jd_analysis, critiques_formatted)  # type: ignore
-            result = structured_llm.invoke(full_prompt)
-            if hasattr(result, "projects") and len(result.projects) == 3:  # type: ignore
-                return {
-                    "candidate_projects": result.projects,  # type: ignore
-                    "iteration_count": iteration_count,
-                }
-    except Exception:
-        pass
-
-    # JD-adaptive fallback: builds domain-specific projects from JD stack
-    fallback_projects = build_fallback_projects(jd_analysis)  # type: ignore
-    return {
-        "candidate_projects": fallback_projects,
-        "iteration_count": iteration_count,
-    }
+        structured_llm = llm.with_structured_output(ProjectsContainer)
+        # Build JD-aware dynamic prompt (resolves archetypes, injects JD stack)
+        full_prompt = build_synthesis_prompt(jd_analysis, critiques_formatted)  # type: ignore
+        result = structured_llm.invoke(full_prompt)
+        if hasattr(result, "projects") and len(result.projects) == 3:  # type: ignore
+            return {
+                "candidate_projects": result.projects,  # type: ignore
+                "iteration_count": iteration_count,
+            }
+            
+    raise ValueError("LLM failed to synthesize exactly 3 projects. No fallback available.")
 
 
 def evaluate_portfolio_node(state: AgentState) -> Dict[str, Any]:
