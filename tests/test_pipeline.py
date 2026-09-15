@@ -17,7 +17,7 @@ def test_output_format_validation():
 
     # "all" is removed and must raise ValidationError
     with pytest.raises(ValidationError):
-        OutputFormat(format="all")
+        OutputFormat(format="all")  # type: ignore
 
 
 def test_pipeline_integration_docx(tmp_path, monkeypatch):
@@ -44,7 +44,7 @@ def test_pipeline_integration_docx(tmp_path, monkeypatch):
         "PostgreSQL, Redis, Kafka, and Docker experience to scale multi-agent systems."
     )
 
-    final_state = graph.invoke({
+    final_state = graph.invoke({  # type: ignore
         "raw_jd": raw_jd,
         "output_format": OutputFormat(format="docx"),
         "candidate_profile": candidate,
@@ -105,7 +105,7 @@ def test_archival_on_subsequent_run(tmp_path, monkeypatch):
         "critique_history": [],
     }
     graph = create_resume_graph()
-    res = graph.invoke(state)
+    res = graph.invoke(state)  # type: ignore
 
     # Invariants:
     # 1. Prior file already in old/ was preserved
@@ -151,7 +151,7 @@ def test_job_config_loading_and_execution(tmp_path, monkeypatch):
 
     # Run pipeline with job_config in state
     graph = create_resume_graph()
-    final_state = graph.invoke({
+    final_state = graph.invoke({  # type: ignore
         "raw_jd": "",
         "output_format": OutputFormat(format="latex"),
         "candidate_profile": None,

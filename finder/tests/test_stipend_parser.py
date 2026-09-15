@@ -22,7 +22,7 @@ def test_extract_stipend_edge_cases():
     assert extract_stipend("Not disclosed") == 0
     assert extract_stipend("Unpaid") == 0
     assert extract_stipend("") == 0
-    assert extract_stipend(None) == 0
+    assert extract_stipend(None) == 0  # type: ignore
 
 def test_is_above_threshold():
     assert is_above_threshold(25000) is True

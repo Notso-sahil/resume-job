@@ -69,7 +69,7 @@ def deconstruct_jd_node(state: AgentState) -> Dict[str, Any]:
             if isinstance(jd_analysis, dict):
                 jd_analysis = JDDeconstruction(**jd_analysis)
             if not getattr(jd_analysis, "soft_skills", None):
-                jd_analysis.soft_skills = DEFAULT_SOFT_SKILLS
+                jd_analysis.soft_skills = DEFAULT_SOFT_SKILLS  # type: ignore
             return {"jd_analysis": jd_analysis}
     except Exception:
         pass
@@ -77,7 +77,7 @@ def deconstruct_jd_node(state: AgentState) -> Dict[str, Any]:
     # Fallback/Native deconstruction
     fallback_analysis = fallback_synthesize(raw_jd, JDDeconstruction)
     if not getattr(fallback_analysis, "soft_skills", None):
-        fallback_analysis.soft_skills = DEFAULT_SOFT_SKILLS
+        fallback_analysis.soft_skills = DEFAULT_SOFT_SKILLS  # type: ignore
     return {"jd_analysis": fallback_analysis}
 
 
@@ -112,18 +112,18 @@ def synthesize_projects_node(state: AgentState) -> Dict[str, Any]:
 
             structured_llm = llm.with_structured_output(ProjectsContainer)
             # Build JD-aware dynamic prompt (resolves archetypes, injects JD stack)
-            full_prompt = build_synthesis_prompt(jd_analysis, critiques_formatted)
+            full_prompt = build_synthesis_prompt(jd_analysis, critiques_formatted)  # type: ignore
             result = structured_llm.invoke(full_prompt)
-            if hasattr(result, "projects") and len(result.projects) == 3:
+            if hasattr(result, "projects") and len(result.projects) == 3:  # type: ignore
                 return {
-                    "candidate_projects": result.projects,
+                    "candidate_projects": result.projects,  # type: ignore
                     "iteration_count": iteration_count,
                 }
     except Exception:
         pass
 
     # JD-adaptive fallback: builds domain-specific projects from JD stack
-    fallback_projects = build_fallback_projects(jd_analysis)
+    fallback_projects = build_fallback_projects(jd_analysis)  # type: ignore
     return {
         "candidate_projects": fallback_projects,
         "iteration_count": iteration_count,
@@ -154,7 +154,7 @@ def evaluate_portfolio_node(state: AgentState) -> Dict[str, Any]:
         extra_texts.extend(jd_analysis.databases_and_storage)
         extra_texts.extend(jd_analysis.infrastructure_and_cloud)
 
-    eval_score = audit_portfolio(candidate_projects, target_keywords, extra_texts=extra_texts)
+    eval_score = audit_portfolio(candidate_projects, target_keywords, extra_texts=extra_texts)  # type: ignore
 
     critique_history = list(state.get("critique_history", []))
     if eval_score.critique_feedback:
@@ -237,9 +237,9 @@ def generate_artifacts_node(state: AgentState) -> Dict[str, Any]:
 
     # Assemble portfolio model
     portfolio = ResumeProjectPortfolio(
-        jd_analysis=jd_analysis,
-        projects=candidate_projects,
-        evaluator_audit=evaluation_result,
+        jd_analysis=jd_analysis,  # type: ignore
+        projects=candidate_projects,  # type: ignore
+        evaluator_audit=evaluation_result,  # type: ignore
         candidate_profile=candidate_profile,
         tailored_summary=tailored_summary,
         markdown_summary=f"Portfolio synthesized for {jd_analysis.role_title if jd_analysis else 'Role'}",

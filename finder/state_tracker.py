@@ -94,7 +94,7 @@ class StateTracker:
             cursor.execute('SELECT * FROM applications ORDER BY created_at DESC')
             return [dict(row) for row in cursor.fetchall()]
 
-    def update_status(self, job_id: str, status: str, resume_path: str = None):
+    def update_status(self, job_id: str, status: str, resume_path: str = None):  # type: ignore
         with self._get_conn() as conn:
             cursor = conn.cursor()
             

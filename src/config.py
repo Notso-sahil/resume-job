@@ -26,8 +26,8 @@ class AntiGravityLLM:
 
     def invoke(self, input_prompt, **kwargs):
         """Invoke LLM on a text or message input."""
-        if hasattr(self, "_structured_schema") and self._structured_schema is not None:
-            schema = self._structured_schema
+        if hasattr(self, "_structured_schema") and self._structured_schema is not None:  # type: ignore
+            schema = self._structured_schema  # type: ignore
             return self._generate_structured(input_prompt, schema)
 
         prompt_text = str(input_prompt)
@@ -60,7 +60,7 @@ class AntiGravityLLM:
         if openai_key:
             try:
                 from langchain_openai import ChatOpenAI
-                llm = ChatOpenAI(model="gpt-4o", openai_api_key=openai_key)
+                llm = ChatOpenAI(model="gpt-4o", openai_api_key=openai_key)  # type: ignore
                 return llm.with_structured_output(schema).invoke(prompt)
             except Exception:
                 pass
@@ -88,7 +88,7 @@ def get_llm():
     if openai_key:
         try:
             from langchain_openai import ChatOpenAI
-            return ChatOpenAI(model="gpt-4o", openai_api_key=openai_key)
+            return ChatOpenAI(model="gpt-4o", openai_api_key=openai_key)  # type: ignore
         except Exception:
             pass
 

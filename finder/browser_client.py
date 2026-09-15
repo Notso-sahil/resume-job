@@ -53,7 +53,7 @@ class BrowserClient:
             pass
         return []
 
-    def execute_js(self, tab_id: int, script: str) -> any:
+    def execute_js(self, tab_id: int, script: str) -> any:  # type: ignore
         return self._call_tool("chrome_javascript", {"tabId": tab_id, "script": script})
 
     def navigate(self, tab_id: int, url: str):

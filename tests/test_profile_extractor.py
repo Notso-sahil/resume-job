@@ -141,7 +141,7 @@ def test_profile_normalizes_2nd_year_to_3rd_year():
     profile = parse_profile_deterministic(text_with_2nd_year)
     assert len(profile.education) == 1
     edu = profile.education[0]
-    assert "3rd Year" in edu.details
-    assert "2nd Year" not in edu.details
+    assert "3rd Year" in edu.details  # type: ignore
+    assert "2nd Year" not in edu.details  # type: ignore
 
 

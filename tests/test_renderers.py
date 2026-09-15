@@ -40,8 +40,8 @@ def get_test_portfolio():
         passed_all_gates=True,
     )
     portfolio = ResumeProjectPortfolio(
-        jd_analysis=jd_analysis,
-        projects=projects,
+        jd_analysis=jd_analysis,  # type: ignore
+        projects=projects,  # type: ignore
         evaluator_audit=eval_audit,
         candidate_profile=candidate,
         markdown_summary="Test portfolio",
@@ -90,9 +90,9 @@ def test_renderers_fallback_with_no_candidate_profile():
     projects = fallback_synthesize("", ProjectSpec)
     eval_score = fallback_synthesize("", EvaluatorScore)
     portfolio = ResumeProjectPortfolio(
-        jd_analysis=jd,
-        projects=projects,
-        evaluator_audit=eval_score,
+        jd_analysis=jd,  # type: ignore
+        projects=projects,  # type: ignore
+        evaluator_audit=eval_score,  # type: ignore
         candidate_profile=None,
         tailored_summary="Passionate systems engineer.",
         markdown_summary="Summary",

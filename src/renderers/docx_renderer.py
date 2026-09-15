@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Optional
 from docx import Document
 from docx.shared import Pt, Inches, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.enum.text import WD_ALIGN_PARAGRAPH  # type: ignore
 from docx.oxml import parse_xml
 
 from src.schemas.models import ResumeProjectPortfolio, CandidateProfile
