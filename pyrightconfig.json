@@ -1,0 +1,15 @@
+{
+  "include": [
+    "finder",
+    "tests",
+    "src"
+  ],
+  "extraPaths": [
+    "."
+  ],
+  "pythonVersion": "3.14",
+  "typeCheckingMode": "basic",
+  "useLibraryCodeForTypes": true,
+  "reportMissingImports": "none",
+  "reportMissingModuleSource": "none"
+}
