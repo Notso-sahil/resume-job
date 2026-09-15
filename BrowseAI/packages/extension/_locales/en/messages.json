@@ -1,0 +1,434 @@
+{
+  "extensionName": {
+    "message": "NexusAI Browser Agent",
+    "description": "Primary identity of the extension"
+  },
+  "extensionDescription": {
+    "message": "Autonomous browser automation runtime connecting Antigravity to web environments",
+    "description": "Short explanation of the extension functionality"
+  },
+  "nativeServerConfigLabel": {
+    "message": "Bridge Connection Gateway",
+    "description": "Title of the primary bridge server configuration panel"
+  },
+  "semanticEngineLabel": {
+    "message": "Neural Vector Engine",
+    "description": "Label for local embeddings and semantic retrieval system"
+  },
+  "embeddingModelLabel": {
+    "message": "Transformer Model Runtime",
+    "description": "Section header for embedding model selection"
+  },
+  "indexDataManagementLabel": {
+    "message": "Vector Index & Storage",
+    "description": "Section header for managing stored semantic index data"
+  },
+  "modelCacheManagementLabel": {
+    "message": "Model Cache Storage",
+    "description": "Section header for local weights and cache"
+  },
+  "statusLabel": {
+    "message": "Operational State",
+    "description": "General state indicator label"
+  },
+  "runningStatusLabel": {
+    "message": "Host Service Health",
+    "description": "Status label for the background bridge service"
+  },
+  "connectionStatusLabel": {
+    "message": "Gateway Connection Link",
+    "description": "Label for native messaging connection status"
+  },
+  "lastUpdatedLabel": {
+    "message": "Last Heartbeat:",
+    "description": "Timestamp prefix for the most recent health check"
+  },
+  "connectButton": {
+    "message": "Connect Runtime",
+    "description": "Button to establish connection to native bridge"
+  },
+  "disconnectButton": {
+    "message": "Disconnect Runtime",
+    "description": "Button to terminate connection to native bridge"
+  },
+  "connectingStatus": {
+    "message": "Synchronizing link...",
+    "description": "State when gateway handshake is in progress"
+  },
+  "connectedStatus": {
+    "message": "Online & Linked",
+    "description": "State when gateway is fully operational"
+  },
+  "disconnectedStatus": {
+    "message": "Standby / Offline",
+    "description": "State when gateway is disconnected"
+  },
+  "detectingStatus": {
+    "message": "Probing bridge host...",
+    "description": "State when testing host availability"
+  },
+  "serviceRunningStatus": {
+    "message": "NexusAI Bridge Active (Port: {0})",
+    "description": "State showing the running port of the Fastify server"
+  },
+  "serviceNotConnectedStatus": {
+    "message": "Bridge service unreachable",
+    "description": "State when background server is offline"
+  },
+  "connectedServiceNotStartedStatus": {
+    "message": "Native host linked; awaiting MCP daemon",
+    "description": "State when native messaging is up but HTTP server is starting"
+  },
+  "mcpServerConfigLabel": {
+    "message": "Fastify MCP Protocol Specification",
+    "description": "Header for JSON-RPC client connection instructions"
+  },
+  "connectionPortLabel": {
+    "message": "Bridge Service Port",
+    "description": "Label for the target port configuration input"
+  },
+  "refreshStatusButton": {
+    "message": "Probe Status",
+    "description": "Button to refresh health metrics"
+  },
+  "copyConfigButton": {
+    "message": "Copy MCP Configuration",
+    "description": "Button to copy client connection JSON"
+  },
+  "retryButton": {
+    "message": "Retry Directive",
+    "description": "Button to re-attempt a failed action"
+  },
+  "cancelButton": {
+    "message": "Abort",
+    "description": "Button to cancel an ongoing prompt or action"
+  },
+  "confirmButton": {
+    "message": "Confirm Directive",
+    "description": "Button to confirm an action"
+  },
+  "saveButton": {
+    "message": "Save Preferences",
+    "description": "Button to persist settings"
+  },
+  "closeButton": {
+    "message": "Dismiss",
+    "description": "Button to close an overlay or drawer"
+  },
+  "resetButton": {
+    "message": "Restore Defaults",
+    "description": "Button to reset configurations"
+  },
+  "initializingStatus": {
+    "message": "Bootstrapping...",
+    "description": "General initialization in progress"
+  },
+  "processingStatus": {
+    "message": "Executing instruction...",
+    "description": "Active task execution"
+  },
+  "loadingStatus": {
+    "message": "Loading telemetry...",
+    "description": "Fetching background data"
+  },
+  "clearingStatus": {
+    "message": "Purging records...",
+    "description": "Deleting data"
+  },
+  "cleaningStatus": {
+    "message": "Evicting stale entries...",
+    "description": "Cleaning cache"
+  },
+  "downloadingStatus": {
+    "message": "Streaming model assets...",
+    "description": "Downloading assets"
+  },
+  "semanticEngineReadyStatus": {
+    "message": "Neural vector pipeline operational",
+    "description": "Semantic engine is loaded and responsive"
+  },
+  "semanticEngineInitializingStatus": {
+    "message": "Spinning up local vector engine...",
+    "description": "Initializing transformer pipeline"
+  },
+  "semanticEngineInitFailedStatus": {
+    "message": "Neural engine initialization failed",
+    "description": "Error state for semantic engine"
+  },
+  "semanticEngineNotInitStatus": {
+    "message": "Neural engine dormant",
+    "description": "Uninitialized semantic engine"
+  },
+  "initSemanticEngineButton": {
+    "message": "Activate Neural Pipeline",
+    "description": "Button to start vector engine"
+  },
+  "reinitializeButton": {
+    "message": "Reboot Engine",
+    "description": "Button to restart the engine"
+  },
+  "downloadingModelStatus": {
+    "message": "Downloading transformer weights: {0}%",
+    "description": "Progress of model weight download"
+  },
+  "switchingModelStatus": {
+    "message": "Reallocating model weights...",
+    "description": "Switching active transformer"
+  },
+  "modelLoadedStatus": {
+    "message": "Weights loaded into memory",
+    "description": "Model ready in browser memory"
+  },
+  "modelFailedStatus": {
+    "message": "Weight allocation failed",
+    "description": "Model loading error"
+  },
+  "lightweightModelDescription": {
+    "message": "High-throughput multilingual transformer",
+    "description": "Description of lightweight model"
+  },
+  "betterThanSmallDescription": {
+    "message": "Enhanced semantic balance with superior accuracy",
+    "description": "Description of balanced model"
+  },
+  "multilingualModelDescription": {
+    "message": "Deep multilingual semantic representations",
+    "description": "Description of heavy model"
+  },
+  "fastPerformance": {
+    "message": "Maximum Speed",
+    "description": "Performance tier fast"
+  },
+  "balancedPerformance": {
+    "message": "Balanced Latency",
+    "description": "Performance tier balanced"
+  },
+  "accuratePerformance": {
+    "message": "High Precision",
+    "description": "Performance tier accurate"
+  },
+  "networkErrorMessage": {
+    "message": "Bridge connection lost. Ensure nexus-bridge is active on port 12307.",
+    "description": "Standard network communication failure"
+  },
+  "modelCorruptedErrorMessage": {
+    "message": "Cached neural weights failed validation. Re-downloading required.",
+    "description": "Corrupted model cache warning"
+  },
+  "unknownErrorMessage": {
+    "message": "Encountered unexpected browser execution fault.",
+    "description": "Generic unexpected error"
+  },
+  "permissionDeniedErrorMessage": {
+    "message": "Target operation blocked by Chrome permission boundaries.",
+    "description": "Extension permission restriction"
+  },
+  "timeoutErrorMessage": {
+    "message": "Execution timed out waiting for browser DOM response.",
+    "description": "Action timeout"
+  },
+  "indexedPagesLabel": {
+    "message": "Indexed Webpages",
+    "description": "Count of indexed pages"
+  },
+  "indexSizeLabel": {
+    "message": "Vector Store Size",
+    "description": "Disk size of vector index"
+  },
+  "activeTabsLabel": {
+    "message": "Monitored Tabs",
+    "description": "Active browser tabs"
+  },
+  "vectorDocumentsLabel": {
+    "message": "Embedded Nodes",
+    "description": "Count of vector nodes"
+  },
+  "cacheSizeLabel": {
+    "message": "Allocated Cache Size",
+    "description": "Cache size in bytes"
+  },
+  "cacheEntriesLabel": {
+    "message": "Cached Node Entries",
+    "description": "Cache entries count"
+  },
+  "clearAllDataButton": {
+    "message": "Purge Vector Database",
+    "description": "Button to wipe indexed vectors"
+  },
+  "clearAllCacheButton": {
+    "message": "Evict Model Cache",
+    "description": "Button to clear model cache"
+  },
+  "cleanExpiredCacheButton": {
+    "message": "Prune Stale Artifacts",
+    "description": "Button to prune expired cache items"
+  },
+  "exportDataButton": {
+    "message": "Export Index Dump",
+    "description": "Button to export data"
+  },
+  "importDataButton": {
+    "message": "Import Index Dump",
+    "description": "Button to import data"
+  },
+  "confirmClearDataTitle": {
+    "message": "Confirm Index Purge",
+    "description": "Dialog title for data wipe"
+  },
+  "settingsTitle": {
+    "message": "Agent Runtime Preferences",
+    "description": "Settings title"
+  },
+  "aboutTitle": {
+    "message": "About NexusAI Browser Agent",
+    "description": "About title"
+  },
+  "helpTitle": {
+    "message": "Documentation & Diagnostics",
+    "description": "Help title"
+  },
+  "clearDataWarningMessage": {
+    "message": "This operation will completely purge all indexed browser DOM data and semantic vectors:",
+    "description": "Warning message before clearing data"
+  },
+  "clearDataList1": {
+    "message": "Cached text content & accessibility trees",
+    "description": "Bullet 1 for data purge"
+  },
+  "clearDataList2": {
+    "message": "Local HNSW vector embeddings and similarity index",
+    "description": "Bullet 2 for data purge"
+  },
+  "clearDataList3": {
+    "message": "Action execution history and telemetry logs",
+    "description": "Bullet 3 for data purge"
+  },
+  "clearDataIrreversibleWarning": {
+    "message": "Notice: This action cannot be reversed. Web pages must be revisited to reconstruct semantic vectors.",
+    "description": "Irreversible warning notice"
+  },
+  "confirmClearButton": {
+    "message": "Confirm Purge",
+    "description": "Button to execute purge"
+  },
+  "cacheDetailsLabel": {
+    "message": "Cache Telemetry",
+    "description": "Cache details header"
+  },
+  "noCacheDataMessage": {
+    "message": "No resident cache artifacts found.",
+    "description": "Empty cache state"
+  },
+  "loadingCacheInfoStatus": {
+    "message": "Inspecting cache telemetry...",
+    "description": "Loading cache info"
+  },
+  "processingCacheStatus": {
+    "message": "Executing cache maintenance...",
+    "description": "Processing cache"
+  },
+  "expiredLabel": {
+    "message": "Stale / Expired",
+    "description": "Expired tag"
+  },
+  "bookmarksBarLabel": {
+    "message": "Bookmarks Navigation",
+    "description": "Bookmarks bar label"
+  },
+  "newTabLabel": {
+    "message": "New Browser Context",
+    "description": "New tab label"
+  },
+  "currentPageLabel": {
+    "message": "Active Viewport",
+    "description": "Current page label"
+  },
+  "menuLabel": {
+    "message": "Agent Menu",
+    "description": "Menu label"
+  },
+  "navigationLabel": {
+    "message": "Workspace Navigation",
+    "description": "Navigation label"
+  },
+  "mainContentLabel": {
+    "message": "Agent Workspace",
+    "description": "Main content label"
+  },
+  "languageSelectorLabel": {
+    "message": "Language Environment",
+    "description": "Language label"
+  },
+  "themeLabel": {
+    "message": "Visual Theme",
+    "description": "Theme label"
+  },
+  "lightTheme": {
+    "message": "Daylight",
+    "description": "Light theme name"
+  },
+  "darkTheme": {
+    "message": "Obsidian Dark",
+    "description": "Dark theme name"
+  },
+  "autoTheme": {
+    "message": "System Sync",
+    "description": "Auto theme name"
+  },
+  "advancedSettingsLabel": {
+    "message": "Advanced Diagnostics",
+    "description": "Advanced settings label"
+  },
+  "debugModeLabel": {
+    "message": "Diagnostic Trace Logging",
+    "description": "Debug mode label"
+  },
+  "verboseLoggingLabel": {
+    "message": "Verbose Protocol Output",
+    "description": "Verbose logging label"
+  },
+  "successNotification": {
+    "message": "Directive executed successfully.",
+    "description": "Success toast"
+  },
+  "warningNotification": {
+    "message": "Attention: Review parameter requirements.",
+    "description": "Warning toast"
+  },
+  "infoNotification": {
+    "message": "Telemetry update available.",
+    "description": "Info toast"
+  },
+  "configCopiedNotification": {
+    "message": "MCP server configuration copied to clipboard.",
+    "description": "Copied toast"
+  },
+  "dataClearedNotification": {
+    "message": "All vector index records have been pruned.",
+    "description": "Data cleared toast"
+  },
+  "bytesUnit": {
+    "message": "bytes",
+    "description": "Byte unit"
+  },
+  "kilobytesUnit": {
+    "message": "KB",
+    "description": "Kilobyte unit"
+  },
+  "megabytesUnit": {
+    "message": "MB",
+    "description": "Megabyte unit"
+  },
+  "gigabytesUnit": {
+    "message": "GB",
+    "description": "Gigabyte unit"
+  },
+  "itemsUnit": {
+    "message": "nodes",
+    "description": "Items count unit"
+  },
+  "pagesUnit": {
+    "message": "documents",
+    "description": "Pages count unit"
+  }
+}

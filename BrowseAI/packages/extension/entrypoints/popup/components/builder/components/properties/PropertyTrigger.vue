@@ -1,0 +1,226 @@
+<template>
+  <div class="form-section">
+    <div class="form-group checkbox-group">
+      <label class="checkbox-label"
+        ><input type="checkbox" v-model="cfg.enabled" /> Enable Triggers</label
+      >
+    </div>
+    <div class="form-group">
+      <label class="form-label">Description (Optional)</label>
+      <input class="form-input" v-model="cfg.description" placeholder="Describe trigger intent" />
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="form-section">
+    <div class="section-header"><span class="section-title">Trigger Modes</span></div>
+    <div class="form-group checkbox-group">
+      <label class="checkbox-label"
+        ><input type="checkbox" v-model="cfg.modes.manual" /> Manual Run</label
+      >
+      <label class="checkbox-label"
+        ><input type="checkbox" v-model="cfg.modes.url" /> URL Navigation</label
+      >
+      <label class="checkbox-label"
+        ><input type="checkbox" v-model="cfg.modes.contextMenu" /> Context Menu</label
+      >
+      <label class="checkbox-label"
+        ><input type="checkbox" v-model="cfg.modes.command" /> Keyboard Shortcut</label
+      >
+      <label class="checkbox-label"
+        ><input type="checkbox" v-model="cfg.modes.dom" /> DOM Mutation</label
+      >
+      <label class="checkbox-label"
+        ><input type="checkbox" v-model="cfg.modes.schedule" /> Cron Schedule</label
+      >
+    </div>
+  </div>
+
+  <div v-if="cfg.modes.url" class="form-section">
+    <div class="section-title">URL Matching Filter</div>
+    <div class="selector-list">
+      <div v-for="(r, i) in urlRules" :key="i" class="selector-item">
+        <select class="form-select-sm" v-model="r.kind">
+          <option value="url">URL Prefix</option>
+          <option value="domain">Domain Contains</option>
+          <option value="path">Path Prefix</option>
+        </select>
+        <input
+          class="form-input-sm flex-1"
+          v-model="r.value"
+          placeholder="e.g. https://example.com/app"
+        />
+        <button class="btn-icon-sm" @click="move(urlRules, i, -1)" :disabled="i === 0">↑</button>
+        <button
+          class="btn-icon-sm"
+          @click="move(urlRules, i, 1)"
+          :disabled="i === urlRules.length - 1"
+          >↓</button
+        >
+        <button class="btn-icon-sm danger" @click="urlRules.splice(i, 1)">×</button>
+      </div>
+    </div>
+    <button class="btn-sm" @click="urlRules.push({ kind: 'url', value: '' })">+ Add Filter</button>
+  </div>
+
+  <div v-if="cfg.modes.contextMenu" class="form-section">
+    <div class="section-title">Context Menu</div>
+    <div class="form-group">
+      <label class="form-label">Title</label>
+      <input class="form-input" v-model="cfg.contextMenu.title" placeholder="Menu title" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Scope</label>
+      <div class="checkbox-group">
+        <label class="checkbox-label" v-for="c in menuContexts" :key="c">
+          <input type="checkbox" :value="c" v-model="cfg.contextMenu.contexts" /> {{ c }}
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="cfg.modes.command" class="form-section">
+    <div class="section-title">Keyboard Shortcut</div>
+    <div class="form-group">
+      <label class="form-label">Command Identifier (declare in manifest)</label>
+      <input
+        class="form-input"
+        v-model="cfg.command.commandKey"
+        placeholder="e.g. run_quick_trigger_1"
+      />
+    </div>
+    <div class="text-xs text-slate-500" style="padding: 0 20px"
+      >Note: Shortcuts must be declared in extension manifest.</div
+    >
+  </div>
+
+  <div v-if="cfg.modes.dom" class="form-section">
+    <div class="section-title">DOM Mutation</div>
+    <div class="form-group">
+      <label class="form-label">Selector</label>
+      <input class="form-input" v-model="cfg.dom.selector" placeholder="#app .item" />
+    </div>
+    <div class="form-group checkbox-group">
+      <label class="checkbox-label"
+        ><input type="checkbox" v-model="cfg.dom.appear" /> Trigger on Element Appearance</label
+      >
+      <label class="checkbox-label"
+        ><input type="checkbox" v-model="cfg.dom.once" /> Fire Once Only</label
+      >
+    </div>
+    <div class="form-group">
+      <label class="form-label">Debounce (ms)</label>
+      <input class="form-input" type="number" min="0" v-model.number="cfg.dom.debounceMs" />
+    </div>
+  </div>
+
+  <div v-if="cfg.modes.schedule" class="form-section">
+    <div class="section-title">Schedule</div>
+    <div class="selector-list">
+      <div v-for="(s, i) in schedules" :key="i" class="selector-item">
+        <select class="form-select-sm" v-model="s.type">
+          <option value="interval">Interval (minutes)</option>
+          <option value="daily">Daily (HH:mm)</option>
+          <option value="once">Once (ISO timestamp)</option>
+        </select>
+        <input
+          class="form-input-sm flex-1"
+          v-model="s.when"
+          placeholder="5 or 09:00 or 2026-01-01T10:00:00"
+        />
+        <label class="checkbox-label"><input type="checkbox" v-model="s.enabled" /> Active</label>
+        <button class="btn-icon-sm" @click="move(schedules, i, -1)" :disabled="i === 0">↑</button>
+        <button
+          class="btn-icon-sm"
+          @click="move(schedules, i, 1)"
+          :disabled="i === schedules.length - 1"
+          >↓</button
+        >
+        <button class="btn-icon-sm danger" @click="schedules.splice(i, 1)">×</button>
+      </div>
+    </div>
+    <button class="btn-sm" @click="schedules.push({ type: 'interval', when: '5', enabled: true })"
+      >+ Add Schedule</button
+    >
+  </div>
+
+  <div class="divider"></div>
+  <div class="form-section">
+    <div class="text-xs text-slate-500" style="padding: 0 20px"
+      >Note: 
+      Triggers synchronize with runtime tables when saving the workflow.
+    </div>
+  </div>
+</template>
+
+<script lang="ts" setup>
+/* eslint-disable vue/no-mutating-props */
+import { computed } from 'vue';
+import type { NodeBase } from '@/entrypoints/background/record-replay/types';
+
+const props = defineProps<{ node: NodeBase }>();
+
+function ensure() {
+  const n: any = props.node;
+  if (!n.config) n.config = {};
+  if (!n.config.modes)
+    n.config.modes = {
+      manual: true,
+      url: false,
+      contextMenu: false,
+      command: false,
+      dom: false,
+      schedule: false,
+    };
+  if (!n.config.url) n.config.url = { rules: [] };
+  if (!n.config.contextMenu)
+    n.config.contextMenu = { title: 'Execute Workflow', contexts: ['all'], enabled: false };
+  if (!n.config.command) n.config.command = { commandKey: '', enabled: false };
+  if (!n.config.dom)
+    n.config.dom = { selector: '', appear: true, once: true, debounceMs: 800, enabled: false };
+  if (!Array.isArray(n.config.schedules)) n.config.schedules = [];
+}
+
+const cfg = computed<any>({
+  get() {
+    ensure();
+    return (props.node as any).config;
+  },
+  set(v) {
+    (props.node as any).config = v;
+  },
+});
+
+const urlRules = computed({
+  get() {
+    ensure();
+    return (props.node as any).config.url.rules as Array<any>;
+  },
+  set(v) {
+    (props.node as any).config.url.rules = v;
+  },
+});
+
+const schedules = computed({
+  get() {
+    ensure();
+    return (props.node as any).config.schedules as Array<any>;
+  },
+  set(v) {
+    (props.node as any).config.schedules = v;
+  },
+});
+
+const menuContexts = ['all', 'page', 'selection', 'image', 'link', 'video', 'audio'];
+
+function move(arr: any[], i: number, d: number) {
+  const j = i + d;
+  if (j < 0 || j >= arr.length) return;
+  const t = arr[i];
+  arr[i] = arr[j];
+  arr[j] = t;
+}
+</script>
+
+<style scoped></style>

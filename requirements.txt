@@ -1,0 +1,32 @@
+# Core agentic framework
+langgraph>=0.2.0
+langchain>=0.2.0
+
+# AntiGravity SDK (primary model — native integration)
+# antigravity>=1.0.0
+
+# Secondary model providers (optional — only needed if using external API keys)
+langchain-google-genai>=1.0.0
+langchain-openai>=0.1.0
+
+# Schema & validation
+pydantic>=2.7.0
+
+# Templating
+jinja2>=3.1.0
+
+# PDF resume input — candidate profile extraction
+pdfplumber>=0.11.0
+
+# Output rendering — .docx, .pdf, and .tex (LaTeX)
+python-docx>=0.8.11
+docx2pdf>=0.1.8          # primary PDF converter (uses MS Word on Windows/macOS)
+weasyprint>=62.0         # fallback PDF converter (Linux / no-Word environments)
+
+# Environment & CLI
+python-dotenv>=1.0.0
+rich>=13.7.0
+pytest>=8.0.0
+
+# HTTP client for BrowseAI
+requests>=2.32.0

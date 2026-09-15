@@ -1,0 +1,68 @@
+name: Daily Scheduled Commit Pusher
+
+on:
+  schedule:
+    # Runs daily at 08:30 UTC (14:00 IST)
+    - cron: '30 8 * * *'
+  workflow_dispatch:
+    inputs:
+      commits_to_push:
+        description: 'Number of scheduled commits to advance'
+        required: false
+        default: '1'
+
+permissions:
+  contents: write
+
+jobs:
+  advance-scheduled-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Advance main branch to scheduled commit
+        run: |
+          # Fetch the scheduled release branch
+          git fetch origin release/scheduled-updates:release/scheduled-updates
+
+          # Get remaining unmerged commits in chronological order
+          COMMITS=($(git log --reverse --format="%H" origin/main..release/scheduled-updates))
+          TOTAL=${#COMMITS[@]}
+          echo "Found $TOTAL pending scheduled commit(s) on release/scheduled-updates."
+
+          if [ $TOTAL -eq 0 ]; then
+            echo "All 30 scheduled commits have already been pushed to main!"
+            exit 0
+          fi
+
+          COUNT="${{ github.event.inputs.commits_to_push || 1 }}"
+          echo "Advancing main by up to $COUNT commit(s)..."
+
+          ADVANCED=0
+          for COMMIT in "${COMMITS[@]}"; do
+            if [ $ADVANCED -ge $COUNT ]; then
+              break
+            fi
+
+            SUBJECT=$(git log -1 --format="%s" $COMMIT)
+            DATE=$(git log -1 --format="%cd" $COMMIT)
+            echo "Fast-forwarding to commit: $COMMIT"
+            echo "  Message: $SUBJECT"
+            echo "  Date:    $DATE"
+
+            git merge --ff-only $COMMIT
+            ADVANCED=$((ADVANCED + 1))
+          done
+
+          # Push advanced main back to origin
+          git push origin main
+          echo "Successfully pushed $ADVANCED scheduled commit(s) to main!"

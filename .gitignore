@@ -1,0 +1,62 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+
+# Environment variables
+.env
+
+# Output artifacts
+output/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Job configurations (local user data, retain starter sample)
+jobs/*
+!jobs/sample_job.json
+
+# Candidate personal resume PDFs & inputs
+*.pdf
+naive_jd.txt
+
+# Legacy specifications and internal notes
+AntiGravity_Resume_Engine_Spec.md
+rules.md
+
+# Job-Finder artifacts
+applications.db
+finder/__pycache__/
+finder/tests/__pycache__/
+screenshots/

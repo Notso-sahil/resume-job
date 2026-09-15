@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.output/
+.wxt/
+coverage/
+.env
+.env.local
+*.local
+.DS_Store
+*.log
+source-repo/
+.idea/
+.vscode/
+Thumbs.db
+

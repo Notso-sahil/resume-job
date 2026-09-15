@@ -1,0 +1,22 @@
+{
+  "name": "nexusai-browser-agent",
+  "private": true,
+  "scripts": {
+    "build": "node scripts/build-all.mjs",
+    "build:all": "node scripts/build-all.mjs",
+    "register": "node scripts/install-host.mjs",
+    "setup": "node scripts/build-all.mjs && node scripts/install-host.mjs",
+    "dev": "pnpm --filter @nexusai/extension dev",
+    "clean": "pnpm --filter ./packages/* exec -- rm -rf dist .output",
+    "link:bridge": "pnpm --filter @nexusai/bridge exec npm link",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "packageManager": "pnpm@9.x",
+  "devDependencies": {
+    "docx": "^9.7.1",
+    "typescript": "^5.5.4"
+  }
+}

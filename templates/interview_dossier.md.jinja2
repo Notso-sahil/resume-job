@@ -1,0 +1,61 @@
+# Technical Interview Defense Dossier
+
+**Target Role**: {{ jd_analysis.role_title if jd_analysis else "Software Engineer" }}  
+**Target Domain**: {{ jd_analysis.domain if jd_analysis else "Distributed Systems" }}  
+**Candidate**: {{ candidate.full_name if candidate else "Candidate" }}  
+**ATS Coverage Score**: {{ audit.ats_coverage_score }}% | **Hardware Plausibility**: {{ audit.metric_plausibility_score }}/10 | **Stack Cohesion**: {{ audit.stack_cohesion_score }}/10  
+
+---
+
+## Executive Architectural Summary
+
+This dossier provides exhaustive interview defense notes, technical trade-off rationale, simulated disaster recovery runbooks, and probing interview questions with battle-tested model answers for the 3 synthesized engineering projects.
+
+---
+
+{% for proj in projects %}
+## Project {{ loop.index }}: {{ proj.project_title }}
+**Archetype**: `{{ proj.archetype }}`  
+**Core Tech Stack**: `{{ proj.tech_stack | join(', ') }}`  
+
+### High-Level Architecture
+{{ proj.high_level_architecture }}
+
+### Core Engineering Bottleneck & Solution
+- **The Bottleneck**: {{ proj.core_bottleneck }}
+- **The Technical Solution**: {{ proj.technical_solution }}
+
+### Quantified Benchmark Highlights
+{% for metric in proj.quantified_impact_metrics %}
+- **{{ metric }}**
+{% endfor %}
+
+### Architectural Trade-offs ("Why Not X?")
+{% for trade in proj.trade_offs %}
+#### Decision: {{ trade.decision }}
+- **Chosen Technology**: `{{ trade.chosen_technology }}`
+- **Rejected Technology**: `{{ trade.rejected_technology }}`
+- **Architectural Rationale**: {{ trade.justification }}
+{% endfor %}
+
+### Simulated Failure Mode & Production Recovery Runbook
+{% for fail in proj.failure_modes %}
+- **Failure Scenario**: {{ fail.scenario }}
+- **Blast Radius & Impact**: {{ fail.impact }}
+- **Automated Mitigation & Recovery**: {{ fail.mitigation_strategy }}
+{% endfor %}
+
+### 5 Probing Interview Questions & Model Defense Answers
+{% for qna in proj.interview_defense_qna %}
+#### Q{{ loop.index }}: {{ qna.question }}
+> **Model Answer**:  
+> {{ qna.answer }}
+
+{% endfor %}
+
+---
+{% endfor %}
+
+## Target ATS Keywords Audited
+**Matched Keywords ({{ audit.ats_coverage_score }}%)**:  
+`{{ jd_analysis.target_keywords | join(', ') if jd_analysis else "N/A" }}`

@@ -1,0 +1,63 @@
+{
+  "company_name": "Sample Enterprise",
+  "role_title": "AI Systems & Infrastructure Engineer",
+  "seniority_level": "Mid-Senior",
+  "domain": "Scalable AI Platforms, Agentic Orchestration & Distributed Inference",
+  "primary_languages": [
+    "Python",
+    "Go",
+    "C++",
+    "TypeScript"
+  ],
+  "frameworks": [
+    "FastAPI",
+    "PyTorch",
+    "LangGraph",
+    "vLLM",
+    "Docker",
+    "Pydantic"
+  ],
+  "databases_and_storage": [
+    "PostgreSQL",
+    "Redis",
+    "Qdrant",
+    "Kafka"
+  ],
+  "infrastructure_and_cloud": [
+    "Kubernetes",
+    "AWS",
+    "Docker",
+    "Prometheus",
+    "OpenTelemetry"
+  ],
+  "core_engineering_challenges": [
+    "Minimizing p99 inference latency and memory fragmentation during high-concurrency LLM serving",
+    "Orchestrating resilient multi-agent execution graphs with checkpointed state persistence",
+    "Designing low-overhead distributed tracing and real-time observability across autonomous tools"
+  ],
+  "target_keywords": [
+    "Python",
+    "FastAPI",
+    "LangGraph",
+    "vLLM",
+    "PyTorch",
+    "Docker",
+    "Kubernetes",
+    "Redis",
+    "PostgreSQL",
+    "Vector Database",
+    "Qdrant",
+    "p99 latency",
+    "Distributed Systems",
+    "Agentic AI",
+    "Prometheus",
+    "OpenTelemetry"
+  ],
+  "soft_skills": [
+    "Cross-Functional Collaboration",
+    "High Ownership & Craft",
+    "First-Principles Problem Solving",
+    "Fast Prototyping",
+    "Root Cause Analysis"
+  ]
+}

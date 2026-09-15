@@ -1,0 +1,22 @@
+Title: Senior AI Platform Engineer / Agentic Backend Architect
+Location: Remote / New York / San Francisco
+Domain: Agentic AI Systems & Distributed Backend Infrastructure
+
+About the Role:
+We are seeking an experienced Senior AI Platform Engineer to design, scale, and maintain our next-generation Agentic Workflow Engine. You will orchestrate autonomous multi-agent pipelines, build high-throughput Retrieval-Augmented Generation (RAG) systems, and establish rock-solid distributed backend infrastructure.
+
+Key Responsibilities:
+- Architect and deploy asynchronous microservices using Python, FastAPI, LangGraph, and LangChain.
+- Design cyclic state machine execution graphs with durable checkpointing in PostgreSQL and caching in Redis.
+- Build high-throughput vector ingestion pipelines utilizing Kafka, Qdrant, and Pinecone to achieve sub-40ms p99 similarity search across millions of embeddings.
+- Implement Model Context Protocol (MCP) servers and custom tool-calling interfaces for autonomous agents.
+- Profile and optimize backend services to eliminate blocking I/O, reduce memory consumption, and safeguard system reliability under concurrent bursts.
+- Deploy containerized services with Docker, Kubernetes, and Helm on AWS EKS, monitored via Prometheus and OpenTelemetry.
+
+Minimum Qualifications:
+- 3+ years of professional backend engineering experience with Python and AsyncIO.
+- Direct experience building production LangGraph / LangChain systems or custom agentic execution frameworks.
+- Deep expertise with relational databases (PostgreSQL), caching (Redis), and event brokers (Kafka).
+- Hands-on experience with vector databases (Qdrant, Pinecone, Milvus, or pgvector).
+- Familiarity with the Model Context Protocol (MCP) and LLM observability tooling.
+- Strong grounding in distributed systems invariants: concurrency, queuing, backpressure, and p99 latency optimization.

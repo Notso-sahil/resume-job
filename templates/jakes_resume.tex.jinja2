@@ -1,0 +1,163 @@
+%-------------------------
+% Resume in LaTeX (Strict 1-Page Layout — Dense & Impact-Packed)
+% Based off of: https://github.com/jakegut/resume
+% License : MIT
+%------------------------
+
+\documentclass[letterpaper,10pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\input{glyphtounicode}
+
+\pagestyle{fancy}
+\fancyhf{} % clear all header and footer fields
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+% Tight margins to completely fill exactly 1 page
+\addtolength{\oddsidemargin}{-0.5in}
+\addtolength{\evensidemargin}{-0.5in}
+\addtolength{\textwidth}{1.0in}
+\addtolength{\topmargin}{-0.45in}
+\addtolength{\textheight}{1.0in}
+
+\urlstyle{same}
+
+\raggedbottom
+\raggedright
+\setlength{\tabcolsep}{0in}
+
+% Sections formatting
+\titleformat{\section}{
+  \vspace{-2pt}\scshape\raggedright\normalsize
+}{}{0em}{}[\color{black}\titlerule \vspace{-1pt}]
+
+% Ensure generated pdf is machine readable/ATS parsable
+\pdfgentounicode=1
+
+%-------------------------
+% Custom commands
+\newcommand{\resumeItem}[1]{
+  \item\small{
+    #1 \vspace{-1pt}
+  }
+}
+
+\newcommand{\resumeSubheading}[4]{
+  \vspace{-3pt}\item
+    \begin{tabular*}{0.97\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & #2 \\
+      \textit{\small#3} & \textit{\small #4} \\
+    \end{tabular*}\vspace{-3pt}
+}
+
+\newcommand{\resumeProjectHeading}[2]{
+    \item
+    \begin{tabular*}{0.97\textwidth}{l@{\extracolsep{\fill}}r}
+      \small#1 & #2 \\
+    \end{tabular*}\vspace{-5pt}
+}
+
+\newcommand{\resumeSubHeadingListStart}{\begin{itemize}[leftmargin=0.15in, label={}]}
+\newcommand{\resumeSubHeadingListEnd}{\end{itemize}\vspace{-2pt}}
+\newcommand{\resumeItemListStart}{\begin{itemize}[leftmargin=0.15in, rightmargin=0.1in]}
+\newcommand{\resumeItemListEnd}{\end{itemize}\vspace{-1pt}}
+
+%-------------------------------------------
+%%%%%%  RESUME STARTS HERE  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    \textbf{\Large \scshape {{ candidate.full_name if candidate else "FIRST LAST" }}} \\ \vspace{1pt}
+    \small {{ candidate.title if candidate and candidate.title else (jd_analysis.role_title if jd_analysis else "Software Engineer") }} \\ \vspace{1pt}
+    \footnotesize {{ candidate.phone if candidate else "+1 (555) 012-3456" }} $|$ \href{mailto:{{ candidate.email if candidate else "candidate@example.com" }}}{\underline{ {{ candidate.email if candidate else "candidate@example.com" }} }}
+    {% if candidate and candidate.linkedin %} $|$ \href{https://{{ candidate.linkedin }}}{\underline{LinkedIn}} {% endif %}
+    {% if candidate and candidate.github %} $|$ \href{https://{{ candidate.github }}}{\underline{GitHub}} {% endif %}
+\end{center}
+\vspace{-10pt}
+
+%-----------PROFESSIONAL SUMMARY-----------
+{% set summary = candidate.tailored_summary or candidate.professional_objective if candidate else None %}
+{% if summary %}
+\section{Professional Summary}
+\small{ {{ summary }} }
+\vspace{-2pt}
+{% endif %}
+
+%-----------WORK EXPERIENCE-----------
+{% if candidate and candidate.experience %}
+\section{Work Experience}
+  \resumeSubHeadingListStart
+    {% for exp in candidate.experience %}
+      \resumeSubheading
+        { {{ exp.organization }} }{ {{ exp.period }} }
+        { {{ exp.role }} }{ {{ exp.location if exp.location else "" }} }
+        {% if exp.bullets %}
+        \resumeItemListStart
+          {% for bullet in exp.bullets %}
+          \resumeItem{ {{ bullet }} }
+          {% endfor %}
+        \resumeItemListEnd
+        {% endif %}
+    {% endfor %}
+  \resumeSubHeadingListEnd
+{% endif %}
+
+%-----------TECHNICAL SKILLS (SWAPPED - BEFORE PROJECTS)-----------
+{% if jd_analysis %}
+\section{Technical Skills}
+ \begin{itemize}[leftmargin=0.15in, label={}]
+    \small{\item{
+     {% if jd_analysis.primary_languages %}\textbf{Languages \& Core}{: {{ jd_analysis.primary_languages | join(', ') }} } \\{% endif %}
+     {% if jd_analysis.frameworks %}\textbf{Frameworks \& Engines}{: {{ jd_analysis.frameworks | join(', ') }} } \\{% endif %}
+     {% set cloud_systems = (jd_analysis.databases_and_storage + jd_analysis.infrastructure_and_cloud) %}
+     {% if cloud_systems %}\textbf{Distributed Systems \& Cloud}{: {{ cloud_systems | join(', ') }} } \\{% endif %}
+      {% if jd_analysis.target_keywords %}\textbf{Architecture \& Specializations}{: {{ jd_analysis.target_keywords[:10] | join(', ') }} } \\{% endif %}
+      {% set soft_skills_list = jd_analysis.soft_skills if (jd_analysis.soft_skills and jd_analysis.soft_skills | length > 0) else ["Cross-Functional Collaboration", "High Ownership & Craft", "First-Principles Problem Solving", "Fast Prototyping", "Root Cause Analysis"] %}
+      \textbf{Professional \& Soft Skills}{: {{ soft_skills_list | join(', ') }} }
+    }}
+ \end{itemize}
+\vspace{-2pt}
+{% endif %}
+
+%-----------TECHNICAL PROJECTS-----------
+\section{Technical Projects}
+    \resumeSubHeadingListStart
+      {% for proj in projects %}
+      \resumeProjectHeading
+          {\textbf{ {{ proj.project_title }} } {% if proj.live_link %}$|$ \href{ {{ proj.live_link }} }{\underline{[Live]}} {% endif %}$|$ \emph{ {{ proj.tech_stack[:6] | join(', ') }} }}{ {{ proj.archetype }} }
+          \resumeItemListStart
+            {% for bullet in proj.xyz_bullets[:4] %}
+            \resumeItem{ {{ bullet }} }
+            {% endfor %}
+          \resumeItemListEnd
+      {% endfor %}
+    \resumeSubHeadingListEnd
+
+%-----------EDUCATION (SWAPPED - AT BOTTOM)-----------
+{% if candidate and candidate.education %}
+\section{Education}
+  \resumeSubHeadingListStart
+    {% for edu in candidate.education %}
+      \resumeSubheading
+        { {{ edu.institution }} }{ {{ edu.year_range }} }
+        { {{ edu.degree }} }{ {{ edu.details if edu.details else "" }} }
+    {% endfor %}
+  \resumeSubHeadingListEnd
+{% endif %}
+
+%-------------------------------------------
+\end{document}
