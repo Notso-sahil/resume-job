@@ -1,4 +1,4 @@
-from typing import TypedDict, List, Optional
+from typing import TypedDict, List, Optional, Dict
 from src.schemas.models import (
     JDDeconstruction,
     ProjectSpec,
@@ -13,6 +13,7 @@ class AgentState(TypedDict):
     output_format: OutputFormat          # "docx" | "pdf" | "latex"
     candidate_profile: Optional[CandidateProfile]  # extracted from resume PDF; used by all renderers
     jd_analysis: Optional[JDDeconstruction]
+    anchor_project: Optional[Dict]       # selected from projects.md for Slot 1
     candidate_projects: Optional[List[ProjectSpec]]
     evaluation_result: Optional[EvaluatorScore]
     iteration_count: int
