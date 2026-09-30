@@ -1,7 +1,22 @@
+import sys
 import time
 import argparse
 import os
 from pathlib import Path
+
+# Ensure UTF-8 output encoding across Windows consoles — without this, Rich's
+# unicode glyphs crash with UnicodeEncodeError on Windows' legacy console codepage.
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+if hasattr(sys.stderr, "reconfigure"):
+    try:
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 from rich.console import Console
 from rich.table import Table
 
