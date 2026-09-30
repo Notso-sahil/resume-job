@@ -35,6 +35,59 @@ Respond with ONLY a JSON array containing exactly 3 tailored bullet strings:
 ["bullet 1", "bullet 2", "bullet 3"]
 """
 
+CANONICAL_RE_JADX_EXPERIENCE = {
+    "company": "Special Cell, Delhi Police (IFSO Unit)",
+    "role": "AI Engineering & Security Research Intern",
+    "location": "New Delhi, India",
+    "start_date": "May 2026",
+    "end_date": "August 2026",
+    "technologies": ["Java", "Python 3.10+", "Model Context Protocol (MCP)", "Vertex AI", "JADX", "Frida", "Bash"],
+    "base_bullets": [
+        "Architected an asynchronous Model Context Protocol (MCP) server in Python exposing JADX decompilation, AST cross-referencing, and control-flow extraction to LLMs via standardized JSON-RPC schemas.",
+        "Engineered multi-step autonomous call-graph traversal pipelines tracing untrusted user inputs (IPC intents, exported components) to critical sinks, accelerating static vulnerability audits by 85%.",
+        "Developed a bidirectional Java IPC extension plugin for the JADX GUI, enabling synchronized AST annotations and sub-2-minute complete static decompilation across 40+ obfuscated Android binaries.",
+        "Integrated dynamic analysis hooks using Frida and Bash automation scripts, reliably isolating hardcoded cryptographic secrets and insecure IPC vectors with zero manual GUI overhead.",
+    ],
+}
+
+
+def build_experience_tailoring_prompt(job_description: Dict[str, Any], experience_entry: Optional[Dict[str, Any]] = None) -> str:
+    """
+    Constructs an LLM prompt that tailors the RE-jadx internship bullets to 
+    emphasize keywords from the target JD (e.g., distributed systems, agentic workflows, 
+    low-latency processing, robust Python/Java backend development).
+    """
+    entry = experience_entry or CANONICAL_RE_JADX_EXPERIENCE
+    target_role = job_description.get("title", job_description.get("role_title", "AI/ML Software Engineer"))
+    target_company = job_description.get("company", job_description.get("company_name", "Target Company"))
+    target_keywords = ", ".join(job_description.get("keywords", job_description.get("target_keywords", [])))
+
+    bullets = entry.get("base_bullets", entry.get("bullets", []))
+    bullets_text = "\n".join(f"- {b}" for b in bullets)
+
+    return f"""You are an elite Executive Tech Recruiter and Resume Strategist.
+Tailor the candidate's real engineering internship experience for maximum relevance to the target job description.
+
+TARGET ROLE: {target_role} at {target_company}
+CRITICAL TARGET KEYWORDS: {target_keywords}
+
+INTERNSHIP CONTEXT:
+Company: {entry['company']}
+Role: {entry['role']}
+Technologies: {', '.join(entry['technologies'])}
+
+SOURCE BULLETS:
+{bullets_text}
+
+STRICT REWRITE RULES:
+1. Deliver EXACTLY 3 or 4 bullet points in Google XYZ format: "Accomplished [X], as measured by [Y], by implementing [Z]".
+2. Retain the factual foundation (decompilation, Model Context Protocol, MCP servers, AST traversal, dynamic Frida hooks).
+3. Emphasize target skills: if the job targets AI/Agents, emphasize the MCP server and tool orchestration; if it targets Systems/Backend, emphasize Java/Python IPC, concurrency, and decompilation throughput.
+4. QUANTIFY EVERY BULLET with concrete engineering metrics (e.g., percentages, latency, scale, benchmarks). NEVER output '[TODO]' placeholders or unmeasured statements.
+5. Return ONLY a valid JSON array of strings containing the final bullets.
+"""
+
+
 
 def _blend_ifso_experience(
     raw_bullets: List[str],
