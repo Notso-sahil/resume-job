@@ -132,7 +132,10 @@ class CandidateProfile(BaseModel):
     education: List[EducationEntry] = Field(default_factory=list)
     experience: List[ExperienceEntry] = Field(default_factory=list)
     projects: List[ProjectSpec] = Field(default_factory=list)
-    real_projects: Optional[List[ProjectSpec]] = Field(default_factory=list)
+    real_projects: Optional[List[ProjectSpec]] = Field(
+        default_factory=list,
+        description="Verified projects loaded from projects.md used for Slot 1 anchor selection; RE-jadx strictly excluded.",
+    )
 
     @model_validator(mode="before")
     @classmethod
