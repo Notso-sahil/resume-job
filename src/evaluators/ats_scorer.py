@@ -12,7 +12,9 @@ def score_ats_coverage(
     target_keywords: List[str], bullets: List[str]
 ) -> Tuple[float, List[str], List[str]]:
     """
-    Algorithmic keyword coverage calculation against generated resume bullets.
+    Algorithmic keyword coverage calculation across all candidate and synthesized bullets.
+    Does not restrict scoring to verified/extracted-only bullets — scores the entire portfolio.
+    Enforces the mandatory ATS threshold invariant (>= 85.0%).
 
     Returns:
       (coverage_percentage, matched_keywords, missing_keywords)
