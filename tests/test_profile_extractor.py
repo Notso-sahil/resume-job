@@ -145,3 +145,47 @@ def test_profile_normalizes_2nd_year_to_3rd_year():
     assert "2nd Year" not in edu.details  # type: ignore
 
 
+def test_load_or_extract_profile_re_jadx_confinement():
+    from src.schemas.models import ProjectSpec, EducationEntry
+    from src.extractors.profile_extractor import ensure_re_jadx_in_experience
+
+    profile = CandidateProfile(
+        full_name="Sahil Yadav",
+        title="AI Engineer",
+        email="sahillyaadav@gmail.com",
+        phone="+91 8700122453",
+        experience=[],
+        projects=[
+            ProjectSpec(
+                title="RE-jadx: Autonomous JADX AI Reverse-Engineering Agent",
+                technologies=["Java", "Python"],
+                bullets=["Engineered automated static analysis pipelines accelerating reviews by 85%."],
+            )
+        ],
+        education=[
+            EducationEntry(
+                degree="B.Tech in Artificial Intelligence & Machine Learning (AIML)",
+                institution="Vivekananda Institute of Professional Studies (VIPS), New Delhi",
+                year_range="2024 – 2028 (Expected)",
+                details="3rd Year",
+            )
+        ],
+    )
+    sanitized = ensure_re_jadx_in_experience(profile)
+
+    # 1. RE-jadx must be completely purged from projects
+    assert len(sanitized.projects) == 0
+
+    # 2. RE-jadx must be present in experience
+    assert len(sanitized.experience) >= 1
+    exp0 = sanitized.experience[0]
+    org_str = (exp0.company or exp0.organization).lower()
+    assert "delhi police" in org_str or "ifso" in org_str
+    assert exp0.is_internship is True
+
+    # 3. Academic standing invariant: 3rd Year
+    for edu in sanitized.education:
+        if edu.details:
+            assert "3rd Year" in edu.details
+
+
