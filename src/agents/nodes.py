@@ -307,6 +307,10 @@ def generate_artifacts_node(state: AgentState) -> Dict[str, Any]:
             experience_override=exp_override,
         )
 
+        # Wire anchor project into candidate_profile.real_projects
+        if state.get("anchor_project"):
+            candidate_profile.real_projects = [_dict_to_project_spec(state["anchor_project"])]
+
     # Assemble portfolio model
     portfolio = ResumeProjectPortfolio(
         jd_analysis=jd_analysis,  # type: ignore
