@@ -10,20 +10,19 @@ Usage:
 """
 
 import sys
+import io
 import os
 import argparse
 from pathlib import Path
 
-# Ensure UTF-8 output encoding across Windows consoles
-if hasattr(sys.stdout, "reconfigure"):
+# Platform-gated UTF-8 stream reconfiguration (Windows CP1252 bootstrap invariant)
+if sys.platform == "win32":
     try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:
-        pass
-if hasattr(sys.stderr, "reconfigure"):
-    try:
-        sys.stderr.reconfigure(encoding="utf-8")
-    except Exception:
+        if hasattr(sys.stdout, "reconfigure"):
+            sys.stdout.reconfigure(encoding="utf-8")
+        if hasattr(sys.stderr, "reconfigure"):
+            sys.stderr.reconfigure(encoding="utf-8")
+    except (AttributeError, io.UnsupportedOperation):
         pass
 
 from rich.console import Console
