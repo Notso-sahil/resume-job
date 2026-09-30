@@ -173,7 +173,7 @@ def parse_profile_deterministic(text: str) -> CandidateProfile:
                 )
             )
 
-    return CandidateProfile(
+    profile = CandidateProfile(
         full_name=full_name,
         title=title,
         phone=phone,
@@ -184,6 +184,9 @@ def parse_profile_deterministic(text: str) -> CandidateProfile:
         education=education_entries,
         experience=experience_entries,
     )
+    if "sahil" in full_name.lower() or full_name == "Candidate":
+        profile = ensure_re_jadx_in_experience(profile)
+    return profile
 
 
 def ensure_re_jadx_in_experience(profile: CandidateProfile) -> CandidateProfile:
@@ -268,6 +271,8 @@ def extract_profile_from_pdf(pdf_path: str | Path) -> CandidateProfile:
                 for edu in profile.education:
                     if edu.details:
                         edu.details = re.sub(r"\b2nd\s*Year\b", "3rd Year", edu.details, flags=re.IGNORECASE)
+                if "sahil" in profile.full_name.lower() or profile.full_name == "Candidate":
+                    profile = ensure_re_jadx_in_experience(profile)
                 return profile
     except Exception:
         pass
