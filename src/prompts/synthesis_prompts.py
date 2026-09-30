@@ -136,7 +136,9 @@ EXACTLY 3 engineering projects tailored to a specific Job Description (JD).
 or databases_and_storage fields. Use the JD stack — do NOT invent unrelated technologies.
 2. The first XYZ bullet of every project MUST front-load a keyword from the JD's target_keywords in \
 the first 7 words.
-3. Metric units and scale MUST be domain-appropriate:
+3. Slot 1 is a REAL project from the candidate's portfolio. Slots 2 & 3 are SYNTHESIZED to maximize role-fit. Treat Slots 2 & 3 as custom architecture designs for the target company's exact engineering challenges.
+4. For Slots 2 & 3: target the specific engineering bottlenecks in the JD. Reference exact technologies and constraints from the JD stack.
+5. Metric units and scale MUST be domain-appropriate:
    - Web/API roles → response time (ms), DAU, API calls/day, uptime %
    - ML/AI roles → model accuracy %, inference latency (ms), throughput (tokens/sec)
    - Data roles → records/day, pipeline run time reduction %, storage cost reduction %
