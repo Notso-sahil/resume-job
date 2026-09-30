@@ -9,6 +9,10 @@ import {
   registerWithElevatedPermissions,
   ensureExecutionPermissions,
   writeNodePathFile,
+  setExtensionId,
+  isValidExtensionId,
+  getBridgeConfigPath,
+  patchMcpConfig,
 } from './scripts/utils';
 import { BrowserType, parseBrowserType, detectInstalledBrowsers } from './scripts/browser-config';
 import { runDoctor } from './scripts/doctor';
@@ -17,6 +21,18 @@ import { runReport } from './scripts/report';
 program
   .version(require('../package.json').version)
   .description('Mcp Chrome Bridge - Local service for communicating with Chrome extension');
+
+/** Printed after any successful `register` run — the #1 setup failure point otherwise. */
+function printSetIdNextSteps(): void {
+  console.log('');
+  console.log(colorText('✓ Native host registered.', 'green'));
+  console.log('');
+  console.log(colorText('NEXT STEP — Tell the bridge your Extension ID:', 'blue'));
+  console.log('  1. Open Chrome → Extensions (chrome://extensions) → Enable Developer Mode');
+  console.log('  2. Load unpacked from: BrowseAI/packages/extension/.output/chrome-mv3');
+  console.log('  3. Copy the Extension ID shown under the extension name');
+  console.log(colorText('  4. Run:  nexus-bridge set-id <PASTE_ID_HERE>', 'cyan'));
+}
 
 // Register Native Messaging host
 program
@@ -95,6 +111,7 @@ program
             'blue',
           ),
         );
+        printSetIdNextSteps();
       } else {
         // Regular user-level installation
         console.log(colorText('Registering user-level Native Messaging host...', 'blue'));
@@ -108,6 +125,7 @@ program
               'blue',
             ),
           );
+          printSetIdNextSteps();
         } else {
           console.log(
             colorText(
@@ -122,6 +140,81 @@ program
       }
     } catch (error: any) {
       console.error(colorText(`Registration failed: ${error.message}`, 'red'));
+      process.exit(1);
+    }
+  });
+
+// Tell the bridge the extension's actual (randomly-assigned) ID
+program
+  .command('set-id <extensionId>')
+  .description(
+    'Set the Chrome extension ID (from chrome://extensions after loading unpacked) that the ' +
+      'native host will accept connections from',
+  )
+  .action(async (extensionId: string) => {
+    try {
+      const normalizedId = extensionId.trim().toLowerCase();
+
+      if (!isValidExtensionId(normalizedId)) {
+        console.error(
+          colorText(
+            `Error: "${extensionId}" doesn't look like a Chrome extension ID. ` +
+              'Expected 32 lowercase letters (a-p), e.g. abcdefghijklmnopabcdefghijklmnop.',
+            'red',
+          ),
+        );
+        console.error(
+          colorText(
+            'Copy the ID from chrome://extensions, shown under the NexusAI extension name.',
+            'yellow',
+          ),
+        );
+        process.exit(1);
+      }
+
+      const { updatedManifestPaths } = await setExtensionId(normalizedId);
+
+      console.log(colorText(`✓ Extension ID saved to ${getBridgeConfigPath()}`, 'green'));
+
+      if (updatedManifestPaths.length > 0) {
+        console.log(colorText('✓ Updated existing native host manifest(s):', 'green'));
+        for (const manifestPath of updatedManifestPaths) {
+          console.log(colorText(`   ${manifestPath}`, 'cyan'));
+        }
+      } else {
+        console.log(
+          colorText(
+            'No existing native host manifest found yet — run "nexus-bridge register" to create one ' +
+              '(it will automatically use this extension ID).',
+            'yellow',
+          ),
+        );
+      }
+
+      console.log(colorText('\nReload the extension in chrome://extensions to pick this up.', 'blue'));
+    } catch (error: any) {
+      console.error(colorText(`Failed to set extension ID: ${error.message}`, 'red'));
+      process.exit(1);
+    }
+  });
+
+// Patch known MCP client configs to point at this bridge's stdio server
+program
+  .command('patch-mcp')
+  .description(
+    'Point known MCP client configs (Antigravity/Gemini CLI, Claude Desktop, Cursor) at this ' +
+      "bridge's stdio server, so you don't have to hand-edit them",
+  )
+  .action(async () => {
+    try {
+      const { patchedPaths } = await patchMcpConfig();
+      if (patchedPaths.length === 0) {
+        console.log(colorText('No MCP client configs were patched.', 'yellow'));
+      } else {
+        console.log(colorText(`\n✓ Patched ${patchedPaths.length} MCP client config(s).`, 'green'));
+      }
+    } catch (error: any) {
+      console.error(colorText(`Failed to patch MCP configs: ${error.message}`, 'red'));
       process.exit(1);
     }
   });

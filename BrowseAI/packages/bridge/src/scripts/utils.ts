@@ -230,6 +230,190 @@ async function ensureWindowsFilePermissions(packageDistDir: string): Promise<voi
   }
 }
 
+// ==================== User-Configured Extension ID ====================
+
+interface BridgeConfig {
+  /** The Extension ID the user copied from chrome://extensions after loading unpacked. */
+  extensionId?: string;
+}
+
+/**
+ * Directory holding `nexus-bridge`'s persisted user config (currently just the
+ * user's Extension ID). Survives `pnpm install`/reinstalls since it lives
+ * outside the package's dist/ directory.
+ */
+export function getBridgeConfigDir(): string {
+  return path.join(os.homedir(), CONFIG_DIR_NAME);
+}
+
+export function getBridgeConfigPath(): string {
+  return path.join(getBridgeConfigDir(), CONFIG_FILE_NAME);
+}
+
+/**
+ * Validate a Chrome extension ID: 32 lowercase letters (Chrome IDs are
+ * base16-like but drawn from a-p rather than 0-9a-f).
+ */
+export function isValidExtensionId(id: string): boolean {
+  return /^[a-p]{32}$/.test(id);
+}
+
+/**
+ * Read the persisted bridge config. Returns `{}` if the file doesn't exist
+ * or can't be parsed (e.g. corrupted by a previous partial write).
+ */
+export function readBridgeConfig(): BridgeConfig {
+  try {
+    const raw = fs.readFileSync(getBridgeConfigPath(), 'utf8');
+    const parsed = JSON.parse(raw);
+    return typeof parsed === 'object' && parsed !== null ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Write the bridge config atomically (write to a temp file, then rename) so a
+ * crash or concurrent write never leaves config.json truncated/corrupted.
+ */
+export function writeBridgeConfigAtomic(config: BridgeConfig): void {
+  const configDir = getBridgeConfigDir();
+  const configPath = getBridgeConfigPath();
+  fs.mkdirSync(configDir, { recursive: true });
+
+  const tempPath = path.join(configDir, `.${CONFIG_FILE_NAME}.${process.pid}.tmp`);
+  fs.writeFileSync(tempPath, JSON.stringify(config, null, 2), 'utf8');
+  fs.renameSync(tempPath, configPath);
+}
+
+/**
+ * Resolve the extension ID(s) that should be allowed to connect to the
+ * native host. Prefers the user-configured ID from `nexus-bridge set-id`;
+ * falls back to the hardcoded dev IDs in constant.ts when unset.
+ */
+export function getConfiguredExtensionIds(): string[] {
+  const config = readBridgeConfig();
+  if (config.extensionId && isValidExtensionId(config.extensionId)) {
+    return [config.extensionId];
+  }
+  return ALLOWED_EXTENSION_IDS;
+}
+
+/**
+ * Set the user's Extension ID: persist it to ~/.nexus-bridge/config.json and,
+ * for every native host manifest already written to disk, rewrite its
+ * `allowed_origins` to point at the new ID.
+ */
+export async function setExtensionId(id: string): Promise<{ updatedManifestPaths: string[] }> {
+  if (!isValidExtensionId(id)) {
+    throw new Error(
+      `Invalid extension ID: "${id}". Expected 32 lowercase letters (a-p), e.g. ` +
+        'abcdefghijklmnopabcdefghijklmnop. Copy it from chrome://extensions.',
+    );
+  }
+
+  writeBridgeConfigAtomic({ ...readBridgeConfig(), extensionId: id });
+
+  const allowedOrigins = [`chrome-extension://${id}/`];
+  const candidateManifestPaths = new Set<string>([
+    getUserManifestPath(),
+    ...getAllBrowserConfigs().map((config) => config.userManifestPath),
+  ]);
+
+  const updatedManifestPaths: string[] = [];
+  for (const manifestPath of candidateManifestPaths) {
+    if (!fs.existsSync(manifestPath)) continue;
+    try {
+      const existing = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+      existing.allowed_origins = allowedOrigins;
+
+      const tempPath = `${manifestPath}.${process.pid}.tmp`;
+      fs.writeFileSync(tempPath, JSON.stringify(existing, null, 2), 'utf8');
+      fs.renameSync(tempPath, manifestPath);
+      updatedManifestPaths.push(manifestPath);
+    } catch (error: any) {
+      console.warn(
+        colorText(`⚠️ Failed to update manifest at ${manifestPath}: ${error.message}`, 'yellow'),
+      );
+    }
+  }
+
+  return { updatedManifestPaths };
+}
+
+// ==================== MCP Client Config Auto-Patch ====================
+
+interface McpConfigTarget {
+  label: string;
+  configPath: string;
+}
+
+export function getMcpServerScriptPath(): string {
+  return path.resolve(__dirname, '..', 'mcp', 'mcp-server-stdio.js');
+}
+
+function getMcpConfigTargets(): McpConfigTarget[] {
+  const home = os.homedir();
+  return [
+    {
+      label: 'Antigravity / Gemini CLI',
+      configPath: path.join(home, '.gemini', 'config', 'mcp_config.json'),
+    },
+    { label: 'Claude Desktop', configPath: path.join(home, '.claude', 'claude_desktop_config.json') },
+    { label: 'Cursor', configPath: path.join(home, '.cursor', 'mcp.json') },
+  ];
+}
+
+export async function patchMcpConfig(): Promise<{ patchedPaths: string[] }> {
+  const serverScriptPath = getMcpServerScriptPath();
+  const patchedPaths: string[] = [];
+
+  for (const target of getMcpConfigTargets()) {
+    try {
+      let config: any = {};
+
+      if (fs.existsSync(target.configPath)) {
+        try {
+          config = JSON.parse(fs.readFileSync(target.configPath, 'utf8'));
+        } catch (error: any) {
+          console.warn(
+            colorText(
+              `⚠️ Skipping ${target.label} config (${target.configPath}): not valid JSON (${error.message})`,
+              'yellow',
+            ),
+          );
+          continue;
+        }
+      }
+
+      if (!config.mcpServers || typeof config.mcpServers !== 'object') {
+        config.mcpServers = {};
+      }
+      config.mcpServers['nexus-browser'] = {
+        command: 'node',
+        args: [serverScriptPath],
+      };
+
+      fs.mkdirSync(path.dirname(target.configPath), { recursive: true });
+      const tempPath = `${target.configPath}.${process.pid}.tmp`;
+      fs.writeFileSync(tempPath, JSON.stringify(config, null, 2), 'utf8');
+      fs.renameSync(tempPath, target.configPath);
+
+      console.log(colorText(`✓ Patched ${target.label} config: ${target.configPath}`, 'green'));
+      patchedPaths.push(target.configPath);
+    } catch (error: any) {
+      console.warn(
+        colorText(
+          `⚠️ Failed to patch ${target.label} config at ${target.configPath}: ${error.message}`,
+          'yellow',
+        ),
+      );
+    }
+  }
+
+  return { patchedPaths };
+}
+
 /**
  * Create Native Messaging host manifest definition
  */
@@ -241,7 +425,7 @@ export async function createManifestContent(): Promise<any> {
     description: DESCRIPTION,
     path: mainPath,
     type: 'stdio',
-    allowed_origins: ALLOWED_EXTENSION_IDS.map((id) => `chrome-extension://${id}/`),
+    allowed_origins: getConfiguredExtensionIds().map((id) => `chrome-extension://${id}/`),
   };
 }
 
