@@ -149,8 +149,8 @@ Deployed, Implemented, Automated, Reduced, Scaled, Replaced, Profiled, Benchmark
    - Technical keywords MUST appear in the first 7 words.
    - 4-5 bullets per project.
 2. Metric Sanity:
-   - Reduction claims: 20%–60% range only.
-   - No physically impossible numbers (no 100k RPS on SQLite, no sub-ms p99 over WAN).
+   - Metrics must be interview-defensible: use engineering-grade specificity (e.g. 38% p95 latency reduction, 2.6× training throughput, 75% cloud cost reduction).
+   - No impossible physics (e.g. no 100k RPS on a single SQLite thread without horizontal sharding).
 3. Interview Readiness: Each project needs 2 architectural trade-offs and 5 Q&A pairs."""
 
 PROJECT_SYNTHESIS_SYSTEM_PROMPT = PROJECT_SYNTHESIS_SYSTEM_PROMPT_V2  # alias for backwards compat
