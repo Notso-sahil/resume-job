@@ -154,7 +154,7 @@
     {% for edu in candidate.education %}
       \resumeSubheading
         { {{ edu.institution }} }{ {{ edu.year_range }} }
-        { {{ edu.degree }} }{ {{ edu.details if edu.details else "" }} }
+        { {{ edu.degree }} }{ {{ edu.details | replace("2nd Year", "3rd Year") if edu.details else "" }} }
     {% endfor %}
   \resumeSubHeadingListEnd
 {% endif %}
