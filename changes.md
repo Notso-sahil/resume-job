@@ -169,59 +169,83 @@ tests/test_evaluator.py::test_sanity_checker_requires_explicit_metrics PASSED [ 
 tests/test_evaluator.py::test_sanity_checker_accepts_valid_xyz_bullet PASSED [ 31%]
 tests/test_evaluator.py::test_sanity_checker_validates_three_slot_structure PASSED [ 34%]
 tests/test_experience_pipeline.py::test_re_jadx_detection_heuristics PASSED [ 37%]
-tests/test_experience_pipeline.py::test_load_eligible_projects_excludes_re_jadx PASSED [ 41%]
-tests/test_experience_pipeline.py::test_re_jadx_migrated_to_experience_and_purged_from_projects PASSED [ 44%]
-tests/test_pipeline.py::test_output_format_validation PASSED             [ 48%]
-tests/test_pipeline.py::test_pipeline_integration_docx PASSED            [ 51%]
-tests/test_pipeline.py::test_slugify_company PASSED                      [ 55%]
-tests/test_pipeline.py::test_archival_on_subsequent_run PASSED           [ 58%]
-tests/test_pipeline.py::test_job_config_loading_and_execution PASSED     [ 62%]
+tests/test_experience_pipeline.py::test_load_eligible_projects_excludes_re_jadx PASSED [ 40%]
+tests/test_experience_pipeline.py::test_re_jadx_migrated_to_experience_and_purged_from_projects PASSED [ 43%]
+tests/test_pipeline.py::test_output_format_validation PASSED             [ 46%]
+tests/test_pipeline.py::test_pipeline_integration_docx PASSED            [ 50%]
+tests/test_pipeline.py::test_slugify_company PASSED                      [ 53%]
+tests/test_pipeline.py::test_archival_on_subsequent_run PASSED           [ 56%]
+tests/test_pipeline.py::test_job_config_loading_and_execution PASSED     [ 59%]
+tests/test_pipeline.py::test_pipeline_slot_allocation_and_re_jadx_confinement PASSED [ 62%]
 tests/test_profile_extractor.py::test_parse_profile_deterministic_no_hardcoded_leak PASSED [ 65%]
 tests/test_profile_extractor.py::test_find_candidate_resumes PASSED      [ 68%]
-tests/test_profile_extractor.py::test_extract_profile_from_resume_pdf PASSED [ 72%]
+tests/test_profile_extractor.py::test_extract_profile_from_resume_pdf PASSED [ 71%]
 tests/test_profile_extractor.py::test_parse_profile_with_uppercase_org_and_bullets PASSED [ 75%]
-tests/test_profile_extractor.py::test_experience_tailoring_preserves_facts_and_enriches_jd PASSED [ 79%]
-tests/test_profile_extractor.py::test_fallback_synthesize_candidate_profile PASSED [ 82%]
-tests/test_profile_extractor.py::test_profile_normalizes_2nd_year_to_3rd_year PASSED [ 86%]
-tests/test_renderers.py::test_render_docx PASSED                         [ 89%]
+tests/test_profile_extractor.py::test_experience_tailoring_preserves_facts_and_enriches_jd PASSED [ 78%]
+tests/test_profile_extractor.py::test_fallback_synthesize_candidate_profile PASSED [ 81%]
+tests/test_profile_extractor.py::test_profile_normalizes_2nd_year_to_3rd_year PASSED [ 84%]
+tests/test_profile_extractor.py::test_load_or_extract_profile_re_jadx_confinement PASSED [ 87%]
+tests/test_renderers.py::test_render_docx PASSED                         [ 90%]
 tests/test_renderers.py::test_render_latex PASSED                        [ 93%]
 tests/test_renderers.py::test_render_dossier PASSED                      [ 96%]
 tests/test_renderers.py::test_renderers_fallback_with_no_candidate_profile PASSED [100%]
 
-============================= 29 passed in 0.98s ==============================
+============================= 32 passed in 1.03s ==============================
 ```
 
 ---
 
-## 5. Complete Atomic Commit History
+## 5. Iteration 3 Master Overhaul (Completed Sections 1–9)
 
-| Commit | Scope | Target File | Description |
-| :---: | :---: | :--- | :--- |
-| `4b68099` | Finder | `finder/browser_client.py` | Implement MCP 2024-11-05 protocol handshake and auto re-auth |
-| `77496d4` | Finder | `finder/form_filler.py` | Add React/Vue setNativeValue descriptor setter and phone sanitization |
-| `8c263f4` | Finder | `finder/finder_cli.py` | Configure UTF-8 console output bootstrapping for Windows CLI |
-| `0193a6c` | Finder | `finder/state_tracker.py` | Add fill_preview JSON column migration and PENDING_CONFIRM state |
-| `3427785` | Bridge | `BrowseAI/packages/bridge/src/*` | Implement automated bridge registration CLI and configuration persistence |
-| `bc1e414` | Schemas | `src/schemas/models.py` | Add is_anchor and is_synthesized flags to ProjectSpec |
-| `02a65fb` | Prompts | `src/prompts/synthesis_prompts.py` | Add generate_xyz_bullet and polymorphic build_synthesis_prompt |
-| `e4cb1c2` | Agents | `src/agents/nodes.py` | Add robust structured output handling and fallback to synthesize_projects_node |
-| `0f21f41` | Docs | `PROJECT_CONTEXT.md` | Update PROJECT_CONTEXT with system architecture and recovery playbook |
-| `ea1f1ae` | Docs | `CHANGELOG_AND_SYSTEM_EVOLUTION.md` | Add CHANGELOG_AND_SYSTEM_EVOLUTION detailing diff and architecture audit |
-| `669a7f2` | Evaluator | `src/evaluators/sanity_checker.py` | Implement PortfolioSanityChecker with forbidden marker and metric enforcement |
-| `a7c0321` | Evaluator | `src/evaluator/__init__.py` | Add backward-compatible src.evaluator package proxy |
-| `beab8ed` | Evaluator | `src/evaluators/sanity_checker.py` | Support hyphenated time units in PortfolioSanityChecker METRIC_PATTERN |
-| `ff37175` | Tests | `tests/test_evaluator.py` | Add PortfolioSanityChecker unit tests for markers, metrics, and slot structure |
-| `c1a82b4` | Extractors | `src/extractors/project_loader.py` | Create project_loader with RE-jadx blacklist heuristics |
-| `a409ff1` | Schemas | `src/schemas/models.py` | Update ExperienceEntry with structured internship fields and alias compatibility |
-| `59647ed` | Prompts | `src/prompts/experience_prompts.py` | Add canonical RE-jadx experience definition and dynamic tailoring prompt |
-| `7320a36` | Extractors | `src/extractors/profile_extractor.py` | Integrate ensure_re_jadx_in_experience into profile extraction pipeline |
-| `55dc314` | Tests | `tests/test_experience_pipeline.py` | Add dedicated test suite for RE-jadx isolation and experience pipeline |
+This iteration executed the complete master overhaul plan:
+1. **Section 1 (Diff Rollback & Suppression Stripping)**: Purged `FORBIDDEN_PHRASES` from `src/evaluators/sanity_checker.py`, loosened reduction plausibility to 5%–95%, loosened SQLite RPS cap to 5,000, verified `ats_scorer.py` full coverage, and stripped metric suppression rules from `synthesis_prompts.py`.
+2. **Section 2 (RE-jadx Experience Lock)**: Expanded `RE_JADX_PATTERNS` regex to detect APK forensic variants, ensured RE-jadx injection across all profile extraction and artifact generation paths, and verified canonical Delhi Police IFSO internship data.
+3. **Section 3 (`projects.md` Ingestion & Scoring Engine)**: Implemented `score_project_for_jd` (tech stack overlap, keyword density, domain alignment) and `select_anchor_project` in `src/extractors/project_loader.py`. Hardened markdown parser to extract technologies, overview, bullets, and schema aliases.
+4. **Section 4 & 5 (Schema & State Upgrades)**: Added `PROJECTS_MD_PATH` in `src/config.py`, `anchor_project` in `AgentState`, `is_anchor_project` bidirectional synchronization in `ProjectSpec`, documented `real_projects` in `CandidateProfile`, and added `tailored_summary_override` to `JDDeconstruction`.
+5. **Section 6 (Agent Graph Execution Overhaul)**: Implemented Slot 1 Anchor (`projects.md`) + Slot 2/3 LLM split in `synthesize_projects_node` with `_dict_to_project_spec` helper, and wired `candidate_profile.real_projects` in `generate_artifacts_node`.
+6. **Section 7 (Prompt System Upgrade)**: Upgraded `PROJECT_SYNTHESIS_SYSTEM_PROMPT_V2` with Slot 1 real anchor vs Slot 2/3 role-synthesized architecture guidelines, added `build_slot2_slot3_prompt`, and aligned `dossier_prompts.py` to flat interview questions schema.
+7. **Section 8 (Renderer Hardening)**: Hardened `jakes_resume.tex.jinja2` for academic standing invariant ("3rd Year") and alias safety; verified `docx_renderer.py` and `dossier_renderer.py`.
+8. **Section 9 (Verification & ATS Smoke Tests)**: Added pipeline slot allocation and RE-jadx isolation assertions in `test_pipeline.py` and `test_profile_extractor.py`. Verified 32/32 tests green and passed full end-to-end smoke test on `naive.json` with 87.5%–96.88% ATS coverage and zero `[TODO]` leaks.
 
 ---
 
-## 6. Inviolable Operational Protocols Enforced
+## 6. Complete Atomic Commit History
+
+| Commit | Scope | Target File | Description |
+| :---: | :---: | :--- | :--- |
+| `befa259` | CLI | `main.py` | Platform-gated UTF-8 stream reconfiguration |
+| `9ae3dd5` | Templates | `templates/interview_dossier.md.jinja2` | Remove legacy change log diff tables from interview dossier |
+| `c5f838d` | Renderers | `src/renderers/dossier_renderer.py` | Update dossier_renderer to pass flat context vars matching new template schema |
+| `11f7129` | Tests | `tests/test_renderers.py` | Update dossier section heading assertions for new template schema |
+| `b344571` | Evaluator | `src/evaluators/sanity_checker.py` | Remove Honest-Engineering metric suppression from sanity_checker |
+| `be4ca56` | Tests | `tests/test_evaluator.py` | Add regression tests for removed metric-suppression constraints |
+| `35d2dee` | Evaluator | `src/evaluators/ats_scorer.py` | Remove verified-bullet-only restriction from ats_scorer |
+| `ec6636b` | Prompts | `src/prompts/synthesis_prompts.py` | Remove metric-suppression guardrails from synthesis prompt system |
+| `de8f46b` | Extractors | `src/extractors/project_loader.py` | Expand RE-jadx detection pattern |
+| `e4fe6f0` | Extractors | `src/extractors/profile_extractor.py` | Ensure RE-jadx injection in all load paths |
+| `cb96152` | Extractors | `src/extractors/project_loader.py` | Add JD role-fit scoring engine and anchor selector |
+| `455bdf4` | Extractors | `src/extractors/project_loader.py` | Harden projects.md parser to extract all project fields |
+| `0cbbd08` | Config | `src/config.py` | Add PROJECTS_MD_PATH constant |
+| `9435cee` | State | `src/agents/state.py` | Add anchor_project key to AgentState |
+| `dff6a6a` | Schemas | `src/schemas/models.py` | Add is_anchor_project alias sync in ProjectSpec |
+| `ede52ed` | Schemas | `src/schemas/models.py` | Clarify real_projects field in CandidateProfile |
+| `a3dbf5b` | Schemas | `src/schemas/models.py` | Add tailored_summary_override to JDDeconstruction |
+| `cc9a82e` | Prompts | `src/prompts/synthesis_prompts.py` | Upgrade synthesis system prompt |
+| `b89e101` | Prompts | `src/prompts/synthesis_prompts.py` | Add build_slot2_slot3_prompt |
+| `d5e15d9` | Nodes | `src/agents/nodes.py` | Implement Slot 1 anchor + Slot 2/3 LLM split |
+| `141003e` | Nodes | `src/agents/nodes.py` | Populate candidate_profile.real_projects from anchor in generate_artifacts_node |
+| `cdb4aa9` | Nodes | `src/agents/nodes.py` | Ensure RE-jadx in experience during artifact generation in generate_artifacts_node |
+| `36cb721` | Prompts | `src/prompts/dossier_prompts.py` | Align dossier prompt to flat interview_questions |
+| `9bc93b8` | Templates | `templates/jakes_resume.tex.jinja2` | Harden LaTeX template for alias safety |
+| `9d5bf9b` | Tests | `tests/test_pipeline.py` | Add anchor slot and RE-jadx confinement assertions |
+| `ffc10fb` | Tests | `tests/test_profile_extractor.py` | Add RE-jadx confinement and academic standing tests |
+| `8483145` | Nodes | `src/agents/nodes.py` | Ensure Slot 1 anchor in pre-curated fallback projects |
+
+---
+
+## 7. Inviolable Operational Protocols Enforced
 
 1. **Strict 1-File-Per-Commit Protocol**: Every file change is committed independently with an atomic, descriptive commit message.
 2. **Zero Remote Push**: Commits are retained strictly on local Git branches; `git push` is prohibited.
-3. **Candidate Invariants**: Sahil Yadav, 3rd Year B.Tech AIML at VIPS, New Delhi; RE-jadx permanently confined to Work Experience; Slots 2 & 3 tailored to target tech stack with Google XYZ metrics.
-4. **Zero Pollution**: No one-off, audit, scratch, or migration scripts left in workspace.
+3. **Candidate Invariants**: Sahil Yadav, 3rd Year B.Tech AIML at VIPS, New Delhi; RE-jadx permanently confined to Work Experience; Slot 1 is verified anchor from `projects.md`; Slots 2 & 3 custom-synthesized for target tech stack.
+4. **Zero Pollution**: No one-off, audit, scratch, or migration scripts left in workspace. Zero `[TODO]` leaks across all generated artifacts.
