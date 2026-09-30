@@ -102,16 +102,33 @@ def synthesize_projects_node(state: AgentState) -> Dict[str, Any]:
         class ProjectsContainer(BaseModel):
             projects: List[ProjectSpec]
 
-        structured_llm = llm.with_structured_output(ProjectsContainer)
-        # Build JD-aware dynamic prompt (resolves archetypes, injects JD stack)
-        full_prompt = build_synthesis_prompt(jd_analysis, critiques_formatted)  # type: ignore
-        result = structured_llm.invoke(full_prompt)
-        if hasattr(result, "projects") and len(result.projects) == 3:  # type: ignore
+        try:
+            structured_llm = llm.with_structured_output(ProjectsContainer)
+            # Build JD-aware dynamic prompt (resolves archetypes, injects JD stack)
+            full_prompt = build_synthesis_prompt(jd_analysis, critiques_formatted)  # type: ignore
+            result = structured_llm.invoke(full_prompt)
+            if hasattr(result, "projects") and len(result.projects) == 3:  # type: ignore
+                return {
+                    "candidate_projects": result.projects,  # type: ignore
+                    "iteration_count": iteration_count,
+                }
+            elif isinstance(result, list) and len(result) == 3:
+                return {
+                    "candidate_projects": result,
+                    "iteration_count": iteration_count,
+                }
+        except Exception:
+            pass
+
+    # JD-adaptive deterministic fallback when LLM output is not 3 projects
+    if jd_analysis:
+        fallback_projects = build_fallback_projects(jd_analysis)  # type: ignore
+        if len(fallback_projects) == 3:
             return {
-                "candidate_projects": result.projects,  # type: ignore
+                "candidate_projects": fallback_projects,
                 "iteration_count": iteration_count,
             }
-            
+
     raise ValueError("LLM failed to synthesize exactly 3 projects. No fallback available.")
 
 
