@@ -1,0 +1,51 @@
+name: Daily 4-Commit Release
+
+on:
+  schedule:
+    # Runs daily at 04:00 UTC (09:30 AM IST)
+    - cron: '0 4 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  workflows: write
+
+jobs:
+  release-batch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Release Next 4 Commits
+        run: |
+          git fetch origin main:refs/remotes/origin/main release-queue:refs/remotes/origin/release-queue
+          
+          # Collect commit SHAs from origin/main to origin/release-queue in chronological order
+          COMMITS=($(git log origin/main..origin/release-queue --reverse --format="%H"))
+          COUNT=${#COMMITS[@]}
+          
+          echo "Found $COUNT pending commits in release-queue."
+          
+          if [ $COUNT -eq 0 ]; then
+            echo "All commits have already been released to main! Queue is complete."
+            exit 0
+          fi
+          
+          # Slice up to 4 commits
+          STEP=$(( COUNT < 4 ? COUNT : 4 ))
+          TARGET_COMMIT=${COMMITS[$((STEP - 1))]}
+          
+          echo "Releasing $STEP commit(s). Advancing main to: $TARGET_COMMIT"
+          git push origin $TARGET_COMMIT:refs/heads/main
+          
+          REMAINING=$(( COUNT - STEP ))
+          echo "Daily batch released successfully. $REMAINING commit(s) remaining in release-queue."
