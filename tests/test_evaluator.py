@@ -91,3 +91,68 @@ def test_audit_portfolio_end_to_end():
     assert audit.ats_coverage_score >= 85.0
     assert audit.metric_plausibility_score >= 8.0
     assert audit.passed_all_gates is True
+
+
+from src.evaluator.sanity_checker import PortfolioSanityChecker
+
+
+def test_sanity_checker_rejects_todo_placeholders():
+    """Ensure bullets containing [TODO] or placeholder strings fail validation."""
+    invalid_bullet = "Developed an autonomous agent, achieving [TODO: add your real measured metric here] by using LangGraph."
+    result = PortfolioSanityChecker.audit_bullet(invalid_bullet)
+    assert result["valid"] is False
+    assert "placeholder marker" in result["reason"]
+
+
+def test_sanity_checker_requires_explicit_metrics():
+    """Ensure bullets without quantitative metrics fail validation."""
+    unquantified_bullet = "Engineered a low-latency neural ranking pipeline with PyTorch and deployed it via Docker containers."
+    result = PortfolioSanityChecker.audit_bullet(unquantified_bullet)
+    assert result["valid"] is False
+    assert "lacks an explicit quantitative metric" in result["reason"]
+
+
+def test_sanity_checker_accepts_valid_xyz_bullet():
+    """Ensure fully quantified Google XYZ bullets pass validation."""
+    valid_bullet = "Engineered an asynchronous hybrid RAG pipeline using Qdrant and Cohere Rerank, cutting p95 query latency to <180 ms while boosting document recall by 24%."
+    result = PortfolioSanityChecker.audit_bullet(valid_bullet)
+    assert result["valid"] is True
+
+
+def test_sanity_checker_validates_three_slot_structure():
+    """Verify that portfolio validation strictly enforces Slot 1 Anchor + Slots 2 & 3 Synthesized."""
+    valid_portfolio = [
+        {
+            "title": "Omni-Channel D2C Sales Agent",
+            "is_anchor": True,
+            "bullets": [
+                "Architected multi-turn conversational sales workflows using LangGraph and Redis, sustaining 1,400 QPS under peak traffic.",
+                "Engineered Shopify Storefront GraphQL integrations, driving a 26.4% cart recovery rate across 8,500 test sessions.",
+                "Integrated Pydantic v2 validation guardrails, reducing invalid JSON schema outputs to <0.4% across production runs.",
+            ],
+        },
+        {
+            "title": "Distributed Multi-Agent Consensus Platform",
+            "is_anchor": False,
+            "is_synthesized": True,
+            "bullets": [
+                "Built a Raft consensus orchestration layer in Python and gRPC, achieving fault tolerance across 15 active nodes.",
+                "Optimized state serialization routines via Protocol Buffers, cutting inter-agent communication latency by 42%.",
+                "Constructed an automated Chaos Engineering testing harness, validating zero state corruption over 100,000 injected failures.",
+            ],
+        },
+        {
+            "title": "Low-Latency Vector Feature Pipeline",
+            "is_anchor": False,
+            "is_synthesized": True,
+            "bullets": [
+                "Architected a streaming vector embedding engine with Kafka and Faiss, processing 12,000 events/sec at sub-50 ms latency.",
+                "Configured INT8 quantization with ONNX Runtime, reducing peak inference memory overhead by 62%.",
+                "Automated drift detection alerts using Feast feature stores, maintaining feature freshness within a 5-second window.",
+            ],
+        },
+    ]
+    audit = PortfolioSanityChecker.audit_portfolio(valid_portfolio)
+    assert audit["passed"] is True
+    assert audit["error"] is None
+
