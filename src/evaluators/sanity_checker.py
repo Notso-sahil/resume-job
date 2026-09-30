@@ -164,7 +164,7 @@ class PortfolioSanityChecker:
     ]
 
     METRIC_PATTERN = re.compile(
-        r"(\d+(\.\d+)?%|\$\d+(\.\d+)?[kKMbB]?|\d+x|\b\d+\s*(ms|s|tokens/sec|QPS|GB|MB|VRAM)\b|\b\d{2,}\b)",
+        r"(\d+(\.\d+)?%|\$\d+(\.\d+)?[kKMbB]?|\d+x|\b\d+[\s-]*(ms|s|sec|seconds?|tokens/sec|QPS|GB|MB|VRAM)\b|\b\d{2,}\b)",
         re.IGNORECASE
     )
 
