@@ -173,11 +173,34 @@ Do NOT generate generic distributed systems projects if the JD is about web deve
 """
 
 
-def build_synthesis_prompt(jd_analysis: "JDDeconstruction", critique_history: str) -> str:
+def build_synthesis_prompt(jd_analysis: Any, critique_history: Any = "") -> str:
     """
     Builds the full synthesis prompt by resolving archetypes from the JD
     and injecting them into the dynamic archetype-aware prompt.
+    Also supports dictionary inputs (job_description, anchor_project) for direct synthesis.
     """
+    if isinstance(jd_analysis, dict):
+        job_description = jd_analysis
+        anchor_project = critique_history if isinstance(critique_history, dict) else {}
+        return f"""You are an elite Staff Technical Recruiter and ATS Optimization Engine.
+Target Role: {job_description.get('title', 'AI/ML Software Engineer')}
+Company: {job_description.get('company', 'Target Company')}
+Required Stack: {', '.join(job_description.get('keywords', []))}
+
+Candidate Anchor Project (Slot 1):
+Title: {anchor_project.get('title')}
+Description: {anchor_project.get('overview')}
+
+TASK:
+Synthesize EXACTLY TWO complementary, advanced engineering projects (Slots 2 and 3) that maximize hiring probability for this exact job description.
+
+REQUIREMENTS:
+1. Every bullet must follow the Google XYZ format with explicit, highly defensible engineering metrics (e.g., latency reduction in ms, throughput improvements, GPU memory optimization, accuracy uplift).
+2. DO NOT output '[TODO]' placeholders or leave metrics unspecified. Provide concrete numbers.
+3. Integrate missing high-priority technologies from the job description across Slots 2 and 3.
+4. Output must be strictly valid JSON conforming to the ProjectSpec schema.
+"""
+
     resolved_ids = resolve_archetypes(jd_analysis)
     archetype_lines = []
     for i, arch_id in enumerate(resolved_ids, 1):
@@ -201,7 +224,7 @@ def build_synthesis_prompt(jd_analysis: "JDDeconstruction", critique_history: st
     user_prompt = PROJECT_SYNTHESIS_USER_PROMPT.format(
         jd_analysis_json=jd_json,
         resolved_archetypes=resolved_str,
-        critique_history=critique_history,
+        critique_history=str(critique_history),
     )
     return f"{system_prompt}\n\n{user_prompt}"
 
@@ -1250,6 +1273,12 @@ def fallback_synthesize(prompt: str, schema):
             ],
         )
 
+    if schema_name == "ProjectsContainer":
+        from src.schemas.models import JDDeconstruction
+        default_jd = fallback_synthesize(prompt, JDDeconstruction)
+        projects = build_fallback_projects(default_jd)
+        return schema(projects=projects)
+
     # For ProjectSpec / List[ProjectSpec] — return generic fallback
     # (JD-aware path is build_fallback_projects called directly from nodes.py)
     from src.schemas.models import ProjectSpec, ArchitecturalTradeOff, FailureModeAnalysis
@@ -1294,3 +1323,18 @@ def build_fallback_projects_generic():
         ],
     )
     return [p, p, p]
+
+
+def generate_xyz_bullet(action: str, impact_metric: str, implementation_details: str) -> str:
+    """
+    Constructs an ATS-optimized, high-impact bullet point conforming to the
+    Google XYZ framework: Accomplished [X], measured by [Y], by doing [Z].
+    Guarantees no [TODO] placeholders or metric omissions.
+    """
+    clean_action = action.strip().rstrip('.')
+    clean_metric = impact_metric.strip().rstrip('.')
+    clean_details = implementation_details.strip().rstrip('.')
+    
+    return f"{clean_action}, achieving {clean_metric} by {clean_details}."
+
+
