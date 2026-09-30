@@ -88,6 +88,8 @@ class ProjectSpec(BaseModel):
     failure_modes: List[FailureModeAnalysis]
     xyz_bullets: List[str]
     interview_defense_qna: List[Dict[str, str]]
+    is_anchor: bool = False
+    is_synthesized: bool = True
 
 # ---------------------------------------------------------------------------
 # Evaluation & Audit
