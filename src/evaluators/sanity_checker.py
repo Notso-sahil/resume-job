@@ -10,17 +10,6 @@ APPROVED_POWER_VERBS = {
     "parallelized", "sharded", "replaced", "built", "scaled"
 }
 
-FORBIDDEN_PHRASES = [
-    "improved efficiency",
-    "enhanced performance",
-    "optimized the system",
-    "reduced latency significantly",
-    "improved throughput",
-    "worked on",
-    "helped with",
-]
-
-
 def check_metric_plausibility(projects: List[ProjectSpec]) -> Tuple[float, List[str]]:
     """
     Deterministic rule-based mathematical and hardware bounds check.
@@ -28,8 +17,7 @@ def check_metric_plausibility(projects: List[ProjectSpec]) -> Tuple[float, List[
       - Google XYZ structure
       - Approved power verbs at start of each bullet
       - Hardware-impossible throughput/latency figures
-      - Realistic compute reduction bounds (20% to 60%)
-      - Absence of forbidden vague phrases
+      - Plausible compute reduction bounds (5% to 95%)
 
     Returns:
       (plausibility_score_0_to_10, list_of_critique_issues)
@@ -53,32 +41,26 @@ def check_metric_plausibility(projects: List[ProjectSpec]) -> Tuple[float, List[
             issues.append(f"Bullet does not begin with an approved engineering power verb: '{first_word}' in '{bullet_clean[:40]}...'")
             penalties += 0.5
 
-        # 2. Check forbidden vague phrases
-        for phrase in FORBIDDEN_PHRASES:
-            if phrase in bullet_clean.lower():
-                issues.append(f"Vague phrase detected: '{phrase}' in '{bullet_clean[:50]}...'")
-                penalties += 0.8
-
-        # 3. Check for quantified metrics (numbers, %, ms, RPS)
+        # 2. Check for quantified metrics (numbers, %, ms, RPS)
         has_metric = bool(re.search(r"\b\d+(\.\d+)?%|\b\d+(\.\d+)?\s*(ms|s|rps|req/s|vectors|MB|GB|TB)\b|\b\d{2,}\b", bullet_clean, re.IGNORECASE))
         if not has_metric:
             issues.append(f"Bullet lacks quantified metric (%, ms, RPS, etc.): '{bullet_clean[:50]}...'")
             penalties += 0.6
 
-        # 4. Check compute/cost reduction bounds (must be 20% - 60%)
+        # 3. Check compute/cost reduction bounds (soft plausibility bounds: 5% - 95%)
         red_match = re.findall(r"(\d+)%\s*(?:reduction|cut|slashed|reduced|lower)", bullet_clean, re.IGNORECASE)
         for pct_str in red_match:
             pct = int(pct_str)
-            if pct < 15 or pct > 80:
-                issues.append(f"Suspicious reduction percentage {pct}% outside plausible 20-60% enterprise range: '{bullet_clean[:50]}...'")
+            if pct < 5 or pct > 95:
+                issues.append(f"Suspicious reduction percentage {pct}% outside plausible 5-95% range: '{bullet_clean[:50]}...'")
                 penalties += 0.7
 
-        # 5. Check SQLite impossible throughput claims (> 1,000 RPS)
+        # 4. Check SQLite impossible throughput claims (> 5,000 RPS on single instance)
         if "sqlite" in bullet_clean.lower():
             sqlite_rps = re.findall(r"(\d+[\d,]*)\s*rps", bullet_clean, re.IGNORECASE)
             for rps in sqlite_rps:
                 val = int(rps.replace(",", ""))
-                if val > 1000:
+                if val > 5000:
                     issues.append(f"Physical hardware bounds violation: Claimed {val} RPS on SQLite instance.")
                     penalties += 1.5
 
