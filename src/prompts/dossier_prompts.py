@@ -14,6 +14,7 @@ For each of the 3 projects in the portfolio:
 3. 5 Probing Technical Interview Questions:
    - Deep questions that a Principal Architect would ask to stress-test authenticity.
    - Scripted, highly articulate model answers that the candidate can study.
+   - Formatted as flat question and answer pairs matching the dossier template schema.
 
 Portfolio context:
 {portfolio_json}
