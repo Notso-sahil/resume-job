@@ -88,6 +88,7 @@ class ProjectSpec(BaseModel):
     interview_defense_qna: List[Dict[str, str]] = Field(default_factory=list)
     overview: str = ""
     is_anchor: bool = False
+    is_anchor_project: bool = False
     is_synthesized: bool = True
 
     @model_validator(mode="before")
@@ -107,6 +108,10 @@ class ProjectSpec(BaseModel):
         bullets = data.get("xyz_bullets") or data.get("bullets") or []
         data["xyz_bullets"] = bullets
         data["bullets"] = bullets
+
+        is_anchor = bool(data.get("is_anchor_project") or data.get("is_anchor") or False)
+        data["is_anchor"] = is_anchor
+        data["is_anchor_project"] = is_anchor
 
         return data
 
