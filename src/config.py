@@ -8,8 +8,10 @@ load_dotenv()
 # System and Pipeline Invariants
 MAX_ITERATIONS: int = 3
 ATS_PASS_THRESHOLD: float = 85.0
+PROJECT_ROOT: Path = Path(__file__).resolve().parent.parent
 OUTPUT_DIR: Path = Path("output")
 TEMPLATES_DIR: Path = Path("templates")
+PROJECTS_MD_PATH: Path = PROJECT_ROOT / "projects.md"
 
 def is_secondary_mode() -> bool:
     """Returns True if an external API key is present in environment, triggering secondary mode."""
