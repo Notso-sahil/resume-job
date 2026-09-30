@@ -1,5 +1,6 @@
-from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Literal
+import re
+from pydantic import BaseModel, Field, model_validator
+from typing import List, Dict, Optional, Literal, Any
 
 # ---------------------------------------------------------------------------
 # Candidate Profile — extracted from the user's resume PDF
@@ -11,37 +12,133 @@ class EducationEntry(BaseModel):
     year_range: str              # e.g. "2020 – 2024"
     details: Optional[str] = None  # e.g. "Honors / Focus Area"
 
+
 class ExperienceEntry(BaseModel):
     role: str                    # e.g. "Software Engineering Intern"
-    organization: str            # e.g. "Tech Systems Inc."
-    period: str                  # e.g. "June - August"
-    location: Optional[str] = None
+    company: str = ""            # Primary field
+    organization: str = ""       # Alias — kept for renderer & template compat
+    location: Optional[str] = "New Delhi, India"
+    start_date: str = ""
+    end_date: str = ""
+    period: str = ""             # Alias — kept for renderer & template compat
+    technologies: List[str] = Field(default_factory=list)
     bullets: List[str] = Field(default_factory=list)
+    is_internship: bool = True
+
+    @model_validator(mode="before")
+    @classmethod
+    def sync_experience_fields(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+
+        company = data.get("company") or data.get("organization") or ""
+        data["company"] = company
+        data["organization"] = company
+
+        start_date = data.get("start_date") or ""
+        end_date = data.get("end_date") or ""
+        period = data.get("period") or ""
+
+        if start_date and end_date and not period:
+            data["period"] = f"{start_date} – {end_date}"
+        elif period and (not start_date or not end_date):
+            parts = re.split(r"\s*[–—-]\s*", period, maxsplit=1)
+            if len(parts) == 2:
+                data["start_date"] = parts[0].strip()
+                data["end_date"] = parts[1].strip()
+            else:
+                data["start_date"] = period
+                data["end_date"] = ""
+
+        return data
+
+
+# ---------------------------------------------------------------------------
+# Project & Architecture Specs
+# ---------------------------------------------------------------------------
+
+class ArchitecturalTradeOff(BaseModel):
+    decision: str
+    chosen_technology: str
+    rejected_technology: str
+    justification: str
+
+
+class FailureModeAnalysis(BaseModel):
+    scenario: str
+    impact: str
+    mitigation_strategy: str
+
+
+class ProjectSpec(BaseModel):
+    project_title: str = ""
+    title: str = ""
+    archetype: str = "Core Domain"  # "Core Domain" | "Distributed Systems" | "DevTools / Infra"
+    high_level_architecture: str = ""
+    tech_stack: List[str] = Field(default_factory=list)
+    technologies: List[str] = Field(default_factory=list)
+    core_bottleneck: str = ""
+    technical_solution: str = ""
+    live_link: Optional[str] = None
+    quantified_impact_metrics: List[str] = Field(default_factory=list)
+    trade_offs: List[ArchitecturalTradeOff] = Field(default_factory=list)
+    failure_modes: List[FailureModeAnalysis] = Field(default_factory=list)
+    xyz_bullets: List[str] = Field(default_factory=list)
+    bullets: List[str] = Field(default_factory=list)
+    interview_defense_qna: List[Dict[str, str]] = Field(default_factory=list)
+    overview: str = ""
+    is_anchor: bool = False
+    is_synthesized: bool = True
+
+    @model_validator(mode="before")
+    @classmethod
+    def sync_project_fields(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+
+        title = data.get("title") or data.get("project_title") or ""
+        data["title"] = title
+        data["project_title"] = title
+
+        tech = data.get("tech_stack") or data.get("technologies") or []
+        data["tech_stack"] = tech
+        data["technologies"] = tech
+
+        bullets = data.get("xyz_bullets") or data.get("bullets") or []
+        data["xyz_bullets"] = bullets
+        data["bullets"] = bullets
+
+        return data
+
 
 class CandidateProfile(BaseModel):
     """
     Extracted and enriched candidate profile.
-    Example:
-      full_name              = "Jane Doe"
-      title                  = "AI Systems Engineer"
-      phone                  = "+1 (555) 012-3456"
-      email                  = "jane.doe@example.com"
-      linkedin               = "linkedin.com/in/janedoe"
-      github                 = "github.com/janedoe"
-      professional_objective = "Systems engineer specializing in distributed architectures..."
-      education              = [EducationEntry(...)]
-      experience             = [ExperienceEntry(role="AI Engineering Intern", organization="Tech Systems Inc.", period="June - August")]
     """
-    full_name: str
-    title: str                           # professional headline from resume header
-    phone: str
-    email: str
+    full_name: str = ""
+    name: str = ""
+    title: str = ""                           # professional headline from resume header
+    phone: str = ""
+    email: str = ""
     linkedin: Optional[str] = None
     github: Optional[str] = None
-    professional_objective: str          # base summary / objective paragraph from uploaded resume
+    professional_objective: str = ""          # base summary / objective paragraph from uploaded resume
     tailored_summary: Optional[str] = None  # dynamically synthesized summary blending candidate background + target JD
     education: List[EducationEntry] = Field(default_factory=list)
     experience: List[ExperienceEntry] = Field(default_factory=list)
+    projects: List[ProjectSpec] = Field(default_factory=list)
+    real_projects: Optional[List[ProjectSpec]] = Field(default_factory=list)
+
+    @model_validator(mode="before")
+    @classmethod
+    def sync_profile_fields(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        name = data.get("name") or data.get("full_name") or ""
+        data["name"] = name
+        data["full_name"] = name
+        return data
+
 
 # ---------------------------------------------------------------------------
 # JD Deconstruction Schema
@@ -60,36 +157,6 @@ class JDDeconstruction(BaseModel):
     target_keywords: List[str]
     soft_skills: Optional[List[str]] = Field(default_factory=list)
 
-# ---------------------------------------------------------------------------
-# Project & Architecture Specs
-# ---------------------------------------------------------------------------
-
-class ArchitecturalTradeOff(BaseModel):
-    decision: str
-    chosen_technology: str
-    rejected_technology: str
-    justification: str
-
-class FailureModeAnalysis(BaseModel):
-    scenario: str
-    impact: str
-    mitigation_strategy: str
-
-class ProjectSpec(BaseModel):
-    project_title: str
-    archetype: str  # "Core Domain" | "Distributed Systems" | "DevTools / Infra"
-    high_level_architecture: str
-    tech_stack: List[str]
-    core_bottleneck: str
-    technical_solution: str
-    live_link: Optional[str] = None
-    quantified_impact_metrics: List[str]
-    trade_offs: List[ArchitecturalTradeOff]
-    failure_modes: List[FailureModeAnalysis]
-    xyz_bullets: List[str]
-    interview_defense_qna: List[Dict[str, str]]
-    is_anchor: bool = False
-    is_synthesized: bool = True
 
 # ---------------------------------------------------------------------------
 # Evaluation & Audit
@@ -102,8 +169,10 @@ class EvaluatorScore(BaseModel):
     passed_all_gates: bool
     critique_feedback: Optional[str] = None
 
+
 class OutputFormat(BaseModel):
     format: Literal["docx", "pdf", "latex"] = "pdf"
+
 
 # ---------------------------------------------------------------------------
 # Final Resume Portfolio Aggregation
