@@ -36,11 +36,11 @@ def load_eligible_projects_from_markdown(file_path: Path) -> List[Dict[str, Any]
             continue
 
         lines = block.strip().split("\n")
-        raw_title = lines[0].strip()
+        raw_title = re.sub(r"^#+\s*(\d+\.\s*)?", "", lines[0]).strip()
 
         # Extraction logic for technologies, overview, metrics
         tech_match = re.search(r"\*\*Technologies:\*\*\s*(.+)", block)
-        technologies = [t.strip() for t in tech_match.group(1).split(",")] if tech_match else []
+        technologies = [t.strip() for t in tech_match.group(1).split(",") if t.strip()] if tech_match else []
 
         overview_match = re.search(r"\*\*Overview:\*\*\s*\n*(.+?)(?=\n\*\*|\n\*|\Z)", block, re.DOTALL)
         overview = overview_match.group(1).strip() if overview_match else ""
@@ -58,8 +58,11 @@ def load_eligible_projects_from_markdown(file_path: Path) -> List[Dict[str, Any]
         eligible_projects.append({
             "title": raw_title,
             "technologies": technologies,
+            "tech_stack": technologies,
             "overview": overview,
             "bullets": bullets,
+            "xyz_bullets": bullets,
+            "is_re_jadx": False,
             "is_anchor": False,
             "is_synthesized": False,
         })
