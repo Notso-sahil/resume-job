@@ -65,3 +65,65 @@ def load_eligible_projects_from_markdown(file_path: Path) -> List[Dict[str, Any]
         })
 
     return eligible_projects
+
+
+def score_project_for_jd(project: Dict[str, Any], jd: Any) -> float:
+    """
+    Scores a projects.md entry against a target JD for Slot 1 anchor selection.
+    Returns a float 0.0 - 100.0 representing role-fit density.
+    """
+    score = 0.0
+    # 1. Tech stack overlap (40 points max)
+    primary_languages = getattr(jd, "primary_languages", []) or []
+    frameworks = getattr(jd, "frameworks", []) or []
+    databases_and_storage = getattr(jd, "databases_and_storage", []) or []
+    infrastructure_and_cloud = getattr(jd, "infrastructure_and_cloud", []) or []
+
+    jd_stack = set(
+        kw.lower()
+        for kw in (
+            primary_languages
+            + frameworks
+            + databases_and_storage
+            + infrastructure_and_cloud
+        )
+    )
+    proj_tech = set(t.lower() for t in project.get("technologies", []))
+    overlap = jd_stack & proj_tech
+    score += min(40.0, len(overlap) * 5.0)
+
+    # 2. Keyword density in overview + bullets (40 points max)
+    corpus = (
+        project.get("overview", "")
+        + " "
+        + " ".join(project.get("bullets", []))
+    ).lower()
+    target_keywords = getattr(jd, "target_keywords", []) or []
+    kw_hits = sum(1 for kw in target_keywords if kw.lower() in corpus)
+    score += min(40.0, kw_hits * 2.5)
+
+    # 3. Domain alignment bonus (20 points max)
+    domain_val = getattr(jd, "domain", "") or ""
+    domain_terms = domain_val.lower().split()
+    domain_hits = sum(1 for t in domain_terms if len(t) > 2 and t in corpus)
+    score += min(20.0, domain_hits * 4.0)
+
+    return round(score, 2)
+
+
+def select_anchor_project(jd: Any, projects_md_path: Path) -> Dict[str, Any]:
+    """
+    Loads all eligible projects from projects.md (excluding RE-jadx),
+    scores each against the JD, and returns the highest-scoring project
+    formatted as a dict compatible with ProjectSpec.
+    Falls back to project #1 (Omni-Channel D2C Agent) if scoring is flat.
+    """
+    projects = load_eligible_projects_from_markdown(projects_md_path)
+    if not projects:
+        return {}  # caller handles fallback
+    scored = [(score_project_for_jd(p, jd), p) for p in projects]
+    scored.sort(key=lambda x: x[0], reverse=True)
+    best_score, best_project = scored[0]
+    best_project["is_anchor"] = True
+    best_project["is_synthesized"] = False
+    return best_project
