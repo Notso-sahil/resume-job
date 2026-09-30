@@ -1,5 +1,5 @@
 import re
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict, Any
 from src.schemas.models import ProjectSpec, EvaluatorScore
 from src.evaluators.ats_scorer import score_ats_coverage, is_ats_passing
 
@@ -145,3 +145,103 @@ def audit_portfolio(
         passed_all_gates=passed,
         critique_feedback=feedback,
     )
+
+
+class PortfolioSanityChecker:
+    """
+    Validates portfolio compliance for high-density ATS scoring and impact formatting.
+    Ensures zero [TODO] leaks and enforces mandatory numerical metrics.
+    """
+
+    FORBIDDEN_MARKERS = [
+        "[TODO",
+        "TODO:",
+        "add your real",
+        "measured metric",
+        "placeholder",
+        "XXXX",
+        "<insert",
+    ]
+
+    METRIC_PATTERN = re.compile(
+        r"(\d+(\.\d+)?%|\$\d+(\.\d+)?[kKMbB]?|\d+x|\b\d+\s*(ms|s|tokens/sec|QPS|GB|MB|VRAM)\b|\b\d{2,}\b)",
+        re.IGNORECASE
+    )
+
+    @classmethod
+    def audit_bullet(cls, bullet: str) -> Dict[str, Any]:
+        """
+        Verifies that a bullet point contains defensible metrics and zero placeholder artifacts.
+        """
+        # Check for forbidden placeholder artifacts
+        for marker in cls.FORBIDDEN_MARKERS:
+            if marker.lower() in bullet.lower():
+                return {
+                    "valid": False,
+                    "reason": f"Bullet contains incomplete placeholder marker: '{marker}'"
+                }
+
+        # Enforce that every bullet has a quantifiable impact metric
+        if not cls.METRIC_PATTERN.search(bullet):
+            return {
+                "valid": False,
+                "reason": "Bullet lacks an explicit quantitative metric (%, ms, QPS, scale, etc.)"
+            }
+
+        # Check minimum length for Google XYZ depth
+        if len(bullet.split()) < 12:
+            return {
+                "valid": False,
+                "reason": "Bullet is too concise to satisfy Google XYZ structure at full depth"
+            }
+
+        return {"valid": True, "reason": "Compliant"}
+
+    @classmethod
+    def audit_portfolio(cls, projects: List[Any]) -> Dict[str, Any]:
+        """
+        Validates the 3-project slot architecture:
+        - Exactly 3 projects total.
+        - Slot 1 must be flagged as anchor (from projects.md).
+        - Slots 2 & 3 must be role-synthesized to maximize JD match.
+        """
+        if len(projects) != 3:
+            return {
+                "passed": False,
+                "error": f"Portfolio must contain exactly 3 projects, found {len(projects)}"
+            }
+
+        # Verify Slot 1 Anchor
+        slot_1 = projects[0]
+        is_anchor = slot_1.get("is_anchor", False) if isinstance(slot_1, dict) else getattr(slot_1, "is_anchor", False)
+        if not is_anchor:
+            return {
+                "passed": False,
+                "error": "Project Slot 1 must be an anchor project sourced from projects.md"
+            }
+
+        # Validate bullets across all projects
+        for idx, project in enumerate(projects, start=1):
+            if isinstance(project, dict):
+                bullets = project.get("bullets", project.get("xyz_bullets", []))
+                title = project.get("title", "")
+            else:
+                bullets = getattr(project, "xyz_bullets", getattr(project, "bullets", []))
+                title = getattr(project, "title", "")
+
+            if not (3 <= len(bullets) <= 5):
+                return {
+                    "passed": False,
+                    "error": f"Project {idx} ('{title}') has {len(bullets)} bullets; expected 3-5"
+                }
+
+            for b_idx, bullet in enumerate(bullets, start=1):
+                audit = cls.audit_bullet(bullet)
+                if not audit["valid"]:
+                    return {
+                        "passed": False,
+                        "error": f"Project {idx} bullet {b_idx} failed validation: {audit['reason']}"
+                    }
+
+        return {"passed": True, "error": None}
+
