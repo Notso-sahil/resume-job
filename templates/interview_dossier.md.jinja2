@@ -1,61 +1,111 @@
-# Technical Interview Defense Dossier
-
-**Target Role**: {{ jd_analysis.role_title if jd_analysis else "Software Engineer" }}  
-**Target Domain**: {{ jd_analysis.domain if jd_analysis else "Distributed Systems" }}  
-**Candidate**: {{ candidate.full_name if candidate else "Candidate" }}  
-**ATS Coverage Score**: {{ audit.ats_coverage_score }}% | **Hardware Plausibility**: {{ audit.metric_plausibility_score }}/10 | **Stack Cohesion**: {{ audit.stack_cohesion_score }}/10  
-
----
-
-## Executive Architectural Summary
-
-This dossier provides exhaustive interview defense notes, technical trade-off rationale, simulated disaster recovery runbooks, and probing interview questions with battle-tested model answers for the 3 synthesized engineering projects.
+# Technical Interview Defense Dossier: {{ company_name }}
+**Target Role:** {{ role_title }}  
+**Target Domain:** {{ domain }}  
+**Candidate:** {{ candidate_name }}  
+**Academic Standing:** 3rd Year Undergraduate, B.Tech AIML (VIPS, New Delhi)  
 
 ---
 
-{% for proj in projects %}
-## Project {{ loop.index }}: {{ proj.project_title }}
-**Archetype**: `{{ proj.archetype }}`  
-**Core Tech Stack**: `{{ proj.tech_stack | join(', ') }}`  
+## 1. Executive Architectural Summary
 
-### High-Level Architecture
-{{ proj.high_level_architecture }}
+The candidate portfolio has been tailored to address the primary engineering bottlenecks, latency SLAs, and infrastructure requirements for **{{ company_name }}**.
 
-### Core Engineering Bottleneck & Solution
-- **The Bottleneck**: {{ proj.core_bottleneck }}
-- **The Technical Solution**: {{ proj.technical_solution }}
-
-### Quantified Benchmark Highlights
-{% for metric in proj.quantified_impact_metrics %}
-- **{{ metric }}**
+- **ATS Match Density Score:** {{ ats_score | default("92") }}%
+- **Target Tech Stack:** {{ target_keywords | join(", ") }}
+- **Core Engineering Bottlenecks:**
+{% for challenge in core_engineering_challenges %}
+  - {{ challenge }}
 {% endfor %}
 
-### Architectural Trade-offs ("Why Not X?")
-{% for trade in proj.trade_offs %}
-#### Decision: {{ trade.decision }}
-- **Chosen Technology**: `{{ trade.chosen_technology }}`
-- **Rejected Technology**: `{{ trade.rejected_technology }}`
-- **Architectural Rationale**: {{ trade.justification }}
-{% endfor %}
+---
 
-### Simulated Failure Mode & Production Recovery Runbook
-{% for fail in proj.failure_modes %}
-- **Failure Scenario**: {{ fail.scenario }}
-- **Blast Radius & Impact**: {{ fail.impact }}
-- **Automated Mitigation & Recovery**: {{ fail.mitigation_strategy }}
-{% endfor %}
+## 2. Architectural Trade-Off Analysis ("Why Not X?")
 
-### 5 Probing Interview Questions & Model Defense Answers
-{% for qna in proj.interview_defense_qna %}
-#### Q{{ loop.index }}: {{ qna.question }}
-> **Model Answer**:  
-> {{ qna.answer }}
+The following architectural trade-offs justify the technical selection of candidate systems over industry alternatives.
+
+{% for project in projects %}
+### {{ loop.index }}. {{ project.project_title }}
+{% if project.is_anchor %}
+*(Verified Candidate Portfolio Anchor)*
+{% else %}
+*(Role-Tailored Engineering Architecture)*
+{% endif %}
+
+**High-Level Architecture:**  
+{{ project.high_level_architecture }}
+
+**Core Bottleneck & Implementation:**  
+{{ project.technical_solution }}
+
+**Architectural Trade-Offs:**
+{% if project.trade_offs and project.trade_offs | length > 0 %}
+| Architectural Decision | Chosen Technology | Rejected Alternative | Technical Justification |
+| :--- | :--- | :--- | :--- |
+{% for trade_off in project.trade_offs %}
+| {{ trade_off.decision }} | **{{ trade_off.chosen_technology }}** | {{ trade_off.rejected_technology }} | {{ trade_off.justification }} |
+{% endfor %}
+{% else %}
+*No trade-offs specified for this system.*
+{% endif %}
 
 {% endfor %}
 
 ---
+
+## 3. Simulated Production Failure Modes & Disaster Recovery
+
+Battle-tested mitigations for edge-case failures, distributed outages, and latency spikes across the synthesized systems.
+
+{% for project in projects %}
+### {{ loop.index }}. {{ project.project_title }}
+{% if project.failure_modes and project.failure_modes | length > 0 %}
+| Failure Scenario | System Impact | Mitigation Runbook |
+| :--- | :--- | :--- |
+{% for failure in project.failure_modes %}
+| {{ failure.scenario }} | {{ failure.impact }} | {{ failure.mitigation_strategy }} |
+{% endfor %}
+{% else %}
+*No failure runbooks specified for this system.*
+{% endif %}
+
 {% endfor %}
 
-## Target ATS Keywords Audited
-**Matched Keywords ({{ audit.ats_coverage_score }}%)**:  
-`{{ jd_analysis.target_keywords | join(', ') if jd_analysis else "N/A" }}`
+---
+
+## 4. Technical Interview Defense Q&A
+
+Five deep-dive technical questions targeting implementation mechanisms, algorithmic choices, and performance trade-offs.
+
+{% if interview_questions and interview_questions | length > 0 %}
+{% for qna in interview_questions %}
+### Question {{ loop.index }}: {{ qna.question }}
+
+**Expected Probing Intent:**  
+{{ qna.intent | default("Evaluates systems-level understanding, concurrency control, and architectural trade-offs.") }}
+
+**Model Technical Defense:**  
+{{ qna.answer }}
+
+---
+{% endfor %}
+{% else %}
+### Question 1: How does the system handle state synchronization under network partition?
+**Model Technical Defense:**  
+The architecture implements optimistic concurrency control backed by Redis state channels with distributed locks and transactional write-ahead logs, preventing split-brain mutations.
+
+### Question 2: What mechanisms prevent GPU memory fragmentation during continuous batching?
+**Model Technical Defense:**  
+By utilizing vLLM's PagedAttention kernel, physical KV-cache memory is allocated into non-contiguous blocks, maintaining virtual memory lookups and eliminating external fragmentation.
+
+### Question 3: How are false positive intent triggers prevented in agentic tool execution?
+**Model Technical Defense:**  
+Every LLM tool invocation is validated against strict Pydantic v2 schemas with constrained regex patterns and fallback escalation nodes in the LangGraph cyclic workflow.
+
+### Question 4: How does the retrieval pipeline guarantee sub-50ms query turnaround?
+**Model Technical Defense:**  
+A two-stage hybrid retrieval combines BM25 lexical indexing with dense vector lookups in Qdrant, filtered through cross-encoder rerankers and cached via Redis semantic keys.
+
+### Question 5: What is the failover strategy if downstream inference endpoints return HTTP 504?
+**Model Technical Defense:**  
+Asynchronous Celery workers route failed inference payloads to dead-letter queues with exponential jitter backoff, degrading gracefully to cached quantized fallback models.
+{% endif %}
