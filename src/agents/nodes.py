@@ -287,6 +287,9 @@ def generate_artifacts_node(state: AgentState) -> Dict[str, Any]:
     if candidate_profile:
         from src.prompts.synthesis_prompts import synthesize_tailored_summary
         from src.prompts.experience_prompts import synthesize_tailored_experience
+        from src.extractors.profile_extractor import ensure_re_jadx_in_experience
+
+        candidate_profile = ensure_re_jadx_in_experience(candidate_profile)
 
         job_config = state.get("job_config") or {}
         summary_override = job_config.get("tailored_summary_override")
