@@ -1,11 +1,14 @@
 import json
 import re
+import copy
 from pathlib import Path
 from typing import Optional
 import pdfplumber
 
 from src.config import get_llm, OUTPUT_DIR
 from src.schemas.models import CandidateProfile, EducationEntry, ExperienceEntry
+from src.extractors.project_loader import is_re_jadx_project
+from src.prompts.experience_prompts import CANONICAL_RE_JADX_EXPERIENCE
 
 CACHE_PATH = OUTPUT_DIR / "candidate_profile.json"
 
@@ -183,6 +186,56 @@ def parse_profile_deterministic(text: str) -> CandidateProfile:
     )
 
 
+def ensure_re_jadx_in_experience(profile: CandidateProfile) -> CandidateProfile:
+    """
+    Verifies that RE-jadx is anchored in the experience/internship list
+    and eradicated from any project lists.
+    """
+    # 1. Purge RE-jadx from projects if accidentally extracted from resume text
+    if hasattr(profile, "projects") and profile.projects:
+        clean_projects = [
+            p for p in profile.projects 
+            if not is_re_jadx_project(getattr(p, "title", getattr(p, "project_title", "")), getattr(p, "overview", ""))
+        ]
+        profile.projects = clean_projects
+
+    if hasattr(profile, "real_projects") and profile.real_projects:
+        profile.real_projects = [
+            p for p in profile.real_projects 
+            if not is_re_jadx_project(getattr(p, "title", getattr(p, "project_title", "")), getattr(p, "overview", ""))
+        ]
+
+    # 2. Check if the IFSO / Delhi Police internship entry is already present
+    has_ifso = any(
+        "delhi police" in (exp.company or exp.organization).lower() 
+        or "ifso" in (exp.company or exp.organization).lower() 
+        or "jadx" in exp.role.lower()
+        for exp in profile.experience
+    )
+
+    if not has_ifso:
+        # Prepend the canonical RE-jadx internship entry
+        jadx_entry = ExperienceEntry(
+            company=CANONICAL_RE_JADX_EXPERIENCE["company"],
+            role=CANONICAL_RE_JADX_EXPERIENCE["role"],
+            location=CANONICAL_RE_JADX_EXPERIENCE["location"],
+            start_date=CANONICAL_RE_JADX_EXPERIENCE["start_date"],
+            end_date=CANONICAL_RE_JADX_EXPERIENCE["end_date"],
+            technologies=CANONICAL_RE_JADX_EXPERIENCE["technologies"],
+            bullets=copy.deepcopy(CANONICAL_RE_JADX_EXPERIENCE["base_bullets"]),
+            is_internship=True,
+        )
+        profile.experience.insert(0, jadx_entry)
+
+    return profile
+
+
+def parse_candidate_profile(text: str) -> CandidateProfile:
+    """Deterministic parser with RE-jadx experience enforcement for candidate profile."""
+    profile = parse_profile_deterministic(text)
+    return ensure_re_jadx_in_experience(profile)
+
+
 def extract_profile_from_pdf(pdf_path: str | Path) -> CandidateProfile:
     """
     Two-step extraction:
@@ -255,6 +308,7 @@ def load_or_extract_profile(pdf_path: str | Path | None) -> Optional[CandidatePr
                 for edu in profile.education:
                     if edu.details:
                         edu.details = re.sub(r"\b2nd\s*Year\b", "3rd Year", edu.details, flags=re.IGNORECASE)
+                profile = ensure_re_jadx_in_experience(profile)
                 return profile
         except Exception:
             pass
@@ -267,6 +321,7 @@ def load_or_extract_profile(pdf_path: str | Path | None) -> Optional[CandidatePr
         return None
 
     profile = extract_profile_from_pdf(pdf_file)
+    profile = ensure_re_jadx_in_experience(profile)
 
     # Cache the result to output/candidate_profile.json
     CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
