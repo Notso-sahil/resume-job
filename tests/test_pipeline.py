@@ -163,3 +163,60 @@ def test_job_config_loading_and_execution(tmp_path, monkeypatch):
     assert final_state["company_slug"] == "acme_corp"
     assert (tmp_path / "acme_corp_resume.tex").exists()
     assert (tmp_path / "acme_corp_ques.md").exists()
+
+
+def test_pipeline_slot_allocation_and_re_jadx_confinement(tmp_path, monkeypatch):
+    import src.agents.nodes
+    monkeypatch.setattr(src.agents.nodes, "OUTPUT_DIR", tmp_path)
+
+    graph = create_resume_graph()
+    candidate = CandidateProfile(
+        full_name="Sahil Yadav",
+        title="AI Systems Engineer",
+        phone="+91 8700122453",
+        email="sahillyaadav@gmail.com",
+        professional_objective="AI systems engineer specializing in autonomous LLM workflows.",
+        education=[
+            EducationEntry(
+                degree="B.Tech in Artificial Intelligence & Machine Learning (AIML)",
+                institution="Vivekananda Institute of Professional Studies (VIPS), New Delhi",
+                year_range="2024 – 2028 (Expected)",
+                details="3rd Year Undergraduate",
+            )
+        ],
+    )
+    raw_jd = (
+        "Seeking Senior AI Platform Engineer with FastAPI, LangGraph, Python, "
+        "Redis, and Docker experience to scale agentic conversational systems."
+    )
+
+    final_state = graph.invoke({  # type: ignore
+        "raw_jd": raw_jd,
+        "output_format": OutputFormat(format="docx"),
+        "candidate_profile": candidate,
+        "iteration_count": 0,
+        "critique_history": [],
+    })
+
+    projects = final_state["candidate_projects"]
+    assert len(projects) == 3
+
+    # Invariant: Slot 1 is Anchor (from projects.md, not synthesized)
+    assert projects[0].is_anchor is True
+    assert projects[0].is_anchor_project is True
+    assert projects[0].is_synthesized is False
+
+    # Invariant: Slots 2 and 3 are Synthesized
+    assert projects[1].is_synthesized is True
+    assert projects[1].is_anchor is False
+    assert projects[2].is_synthesized is True
+    assert projects[2].is_anchor is False
+
+    # Invariant: RE-jadx is strictly confined to experience, never in candidate_projects
+    for p in projects:
+        assert "jadx" not in p.title.lower()
+        assert "re-jadx" not in p.title.lower()
+        assert not any("jadx" in b.lower() for b in p.xyz_bullets)
+
+    # Invariant: RE-jadx is in candidate_profile.experience
+    assert any("delhi police" in exp.organization.lower() or "ifso" in exp.organization.lower() for exp in candidate.experience)
