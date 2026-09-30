@@ -117,7 +117,31 @@ def synthesize_projects_node(state: AgentState) -> Dict[str, Any]:
     if job_config and job_config.get("fallback_projects"):
         fps = job_config["fallback_projects"]
         if len(fps) == 3:
-            return {"candidate_projects": fps, "iteration_count": iteration_count}
+            first_p = fps[0]
+            slot1_is_anchor = (
+                (first_p.get("is_anchor_project") or first_p.get("is_anchor"))
+                if isinstance(first_p, dict)
+                else (getattr(first_p, "is_anchor_project", False) or getattr(first_p, "is_anchor", False))
+            )
+            if slot1_is_anchor:
+                anchor_dict = first_p if isinstance(first_p, dict) else first_p.model_dump()
+                return {
+                    "candidate_projects": fps,
+                    "anchor_project": anchor_dict,
+                    "iteration_count": iteration_count,
+                }
+            else:
+                from src.extractors.project_loader import select_anchor_project
+                from src.config import PROJECTS_MD_PATH
+                anchor_dict = select_anchor_project(jd_analysis, PROJECTS_MD_PATH) if jd_analysis else {}
+                if anchor_dict:
+                    fps[0] = _dict_to_project_spec(anchor_dict)
+                    return {
+                        "candidate_projects": fps,
+                        "anchor_project": anchor_dict,
+                        "iteration_count": iteration_count,
+                    }
+                return {"candidate_projects": fps, "iteration_count": iteration_count}
 
     # --- Path B: Slot 1 from projects.md + Slots 2/3 via LLM ---
     from src.extractors.project_loader import select_anchor_project
