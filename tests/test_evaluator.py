@@ -67,11 +67,20 @@ def test_sanity_checker_invalid_power_verb():
     assert any("approved engineering power verb" in i for i in issues)
 
 
-def test_sanity_checker_forbidden_phrase():
+def test_sanity_checker_allows_engineering_phrases():
     projects = build_fallback_projects(_make_distributed_jd())
     projects[0].xyz_bullets[0] = "Architected a system which improved efficiency by 30% by refactoring queries."
     score, issues = check_metric_plausibility(projects)
-    assert any("Vague phrase detected" in i for i in issues)
+    assert not any("Vague phrase detected" in i for i in issues)
+    assert score >= 8.0
+
+
+def test_sanity_checker_allows_high_reduction_metric():
+    projects = build_fallback_projects(_make_distributed_jd())
+    projects[0].xyz_bullets[0] = "Optimized pipeline compute overhead by achieving a 75% reduction in cloud cost."
+    score, issues = check_metric_plausibility(projects)
+    assert not any("outside plausible" in i for i in issues)
+    assert score >= 8.0
 
 
 def test_audit_portfolio_end_to_end():
