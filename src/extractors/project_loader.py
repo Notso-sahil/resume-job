@@ -5,7 +5,8 @@ from typing import List, Dict, Any
 RE_JADX_PATTERNS = [
     r"\bre-?jadx\b",
     r"\bjadx\b",
-    r"\breverse[- ]engineering agent\b",
+    r"\bapk\s+forensic\b",
+    r"\breverse[- ]engineering\s+agent\b",
 ]
 
 
