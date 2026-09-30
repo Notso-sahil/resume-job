@@ -1,7 +1,8 @@
 """Archetype synthesis prompt templates and offline synthesis engine."""
 from __future__ import annotations
 
-from typing import Optional, List, TYPE_CHECKING
+import json
+from typing import Optional, List, Dict, Any, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from src.schemas.models import JDDeconstruction
@@ -229,6 +230,52 @@ REQUIREMENTS:
         critique_history=str(critique_history),
     )
     return f"{system_prompt}\n\n{user_prompt}"
+
+
+SLOT2_SLOT3_SYNTHESIS_PROMPT = """\
+You are an elite Technical Resume Strategist embedded inside an autonomous resume generation pipeline.
+
+TARGET JD:
+{jd_analysis_json}
+
+SLOT 1 ANCHOR (REAL PROJECT — DO NOT MODIFY):
+{anchor_project_json}
+
+YOUR TASK:
+Generate EXACTLY 2 engineering projects (Slots 2 and 3) that:
+1. Are custom-designed to solve the EXACT engineering bottlenecks listed in the JD's core_engineering_challenges.
+2. Use technologies from the JD's primary_languages, frameworks, and infrastructure stack.
+3. Complement (not duplicate) Slot 1's tech stack and archetype.
+4. Maximize ATS keyword density by naturally embedding all target_keywords across bullets.
+5. Each project MUST have 4–5 XYZ-formula bullets with interview-defensible metrics.
+6. Each project MUST have at least 2 architectural trade-offs and 5 interview Q&A pairs.
+
+CRITICAL:
+- Do NOT output [TODO], empty brackets, or placeholder metrics.
+- Synthesize realistic, specific engineering numbers (latency ms, throughput QPS, cost reduction %, accuracy scores).
+- Output EXACTLY 2 ProjectSpec objects.
+
+Critique history (resolve all prior issues):
+{critique_history}
+"""
+
+
+def build_slot2_slot3_prompt(
+    jd_analysis: Any,
+    anchor_project: Dict[str, Any],
+    critique_history: str = "",
+) -> str:
+    """
+    Builds LLM prompt for generating role-targeted projects for Slots 2 and 3,
+    given the candidate's verified Slot 1 anchor project.
+    """
+    jd_json = jd_analysis.model_dump_json(indent=2) if hasattr(jd_analysis, "model_dump_json") else json.dumps(jd_analysis, indent=2, default=str)
+    anchor_json = json.dumps(anchor_project, indent=2, default=str)
+    return SLOT2_SLOT3_SYNTHESIS_PROMPT.format(
+        jd_analysis_json=jd_json,
+        anchor_project_json=anchor_json,
+        critique_history=critique_history or "None",
+    )
 
 
 # ---------------------------------------------------------------------------
