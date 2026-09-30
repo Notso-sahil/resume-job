@@ -164,6 +164,7 @@ class JDDeconstruction(BaseModel):
     core_engineering_challenges: List[str]
     target_keywords: List[str]
     soft_skills: Optional[List[str]] = Field(default_factory=list)
+    tailored_summary_override: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
