@@ -74,62 +74,132 @@ def deconstruct_jd_node(state: AgentState) -> Dict[str, Any]:
     raise ValueError("LLM failed to generate structured JDDeconstruction. No fallback available.")
 
 
+def _dict_to_project_spec(d: Dict[str, Any]) -> ProjectSpec:
+    """Converts an extracted or parsed project dict into a valid ProjectSpec model."""
+    title = d.get("title") or d.get("project_title") or "Engineering Project"
+    tech = d.get("tech_stack") or d.get("technologies") or []
+    bullets = d.get("xyz_bullets") or d.get("bullets") or []
+    overview = d.get("overview") or ""
+    return ProjectSpec(
+        title=title,
+        project_title=title,
+        archetype=d.get("archetype", "Core Domain Anchor"),
+        high_level_architecture=d.get("high_level_architecture", overview),
+        tech_stack=tech,
+        technologies=tech,
+        core_bottleneck=d.get("core_bottleneck", ""),
+        technical_solution=d.get("technical_solution", ""),
+        quantified_impact_metrics=d.get("quantified_impact_metrics", []),
+        trade_offs=d.get("trade_offs", []),
+        failure_modes=d.get("failure_modes", []),
+        xyz_bullets=bullets,
+        bullets=bullets,
+        interview_defense_qna=d.get("interview_defense_qna", []),
+        overview=overview,
+        is_anchor=True,
+        is_anchor_project=True,
+        is_synthesized=False,
+    )
+
+
 def synthesize_projects_node(state: AgentState) -> Dict[str, Any]:
     """
-    Node 2: Archetype Mapping & Cohesion Synthesis.
-    Resolves the best 3 project archetypes for the JD domain, then generates
-    deep architectural specs & XYZ bullets via LLM or JD-adaptive fallback.
-    Incorporates critique history if self-correcting.
+    Node 2: Slot 1 Anchor + Slot 2/3 LLM Synthesis.
+    Resolves the Slot 1 anchor project from projects.md (excluding RE-jadx),
+    then synthesizes Slots 2 & 3 via LLM tailored directly to target JD.
     """
     iteration_count = state.get("iteration_count", 0) + 1
-
-    # If a pre-configured job provided fallback projects, use them directly
-    job_config = state.get("job_config")
-    if job_config and job_config.get("fallback_projects"):
-        return {
-            "candidate_projects": job_config["fallback_projects"],
-            "iteration_count": iteration_count,
-        }
-
     jd_analysis = state.get("jd_analysis")
     critique_history = state.get("critique_history", [])
-    critiques_formatted = "\n".join(f"- {c}" for c in critique_history) if critique_history else "None (Initial iteration)"
 
+    # --- Path A: job_config with pre-curated fallback_projects ---
+    job_config = state.get("job_config")
+    if job_config and job_config.get("fallback_projects"):
+        fps = job_config["fallback_projects"]
+        if len(fps) == 3:
+            return {"candidate_projects": fps, "iteration_count": iteration_count}
+
+    # --- Path B: Slot 1 from projects.md + Slots 2/3 via LLM ---
+    from src.extractors.project_loader import select_anchor_project
+    from src.config import PROJECTS_MD_PATH
+    from src.prompts.synthesis_prompts import build_slot2_slot3_prompt
+
+    anchor_dict = select_anchor_project(jd_analysis, PROJECTS_MD_PATH) if jd_analysis else {}
+    if not anchor_dict:
+        # Fallback if projects.md is unavailable
+        anchor_dict = {
+            "title": "Omni-Channel Autonomous D2C AI Sales & Conversion Agent",
+            "technologies": ["Python 3.11", "LangGraph", "FastAPI", "Redis", "Docker"],
+            "bullets": [
+                "Architected stateful, multi-turn conversational sales workflows using LangGraph and Redis, reducing multi-turn state retrieval latency by 38% under 500+ concurrent sessions.",
+                "Engineered deterministic tool-calling microservices in FastAPI with strict Pydantic v2 validation, achieving a 99.6% intent execution accuracy rate.",
+                "Integrated asynchronous webhook pipelines deployed in Docker, maintaining a p95 response time under 820ms across 8,500+ interactions.",
+            ],
+            "is_anchor": True,
+            "is_synthesized": False,
+        }
+    anchor_spec = _dict_to_project_spec(anchor_dict)
+
+    critiques_formatted = "\n".join(f"- {c}" for c in critique_history) if critique_history else "None (Initial iteration)"
     llm = get_llm()
 
     if hasattr(llm, "with_structured_output"):
         from pydantic import BaseModel
-        class ProjectsContainer(BaseModel):
+        class TwoProjectsContainer(BaseModel):
             projects: List[ProjectSpec]
 
         try:
-            structured_llm = llm.with_structured_output(ProjectsContainer)
-            # Build JD-aware dynamic prompt (resolves archetypes, injects JD stack)
-            full_prompt = build_synthesis_prompt(jd_analysis, critiques_formatted)  # type: ignore
-            result = structured_llm.invoke(full_prompt)
-            if hasattr(result, "projects") and len(result.projects) == 3:  # type: ignore
+            structured_llm = llm.with_structured_output(TwoProjectsContainer)
+            prompt = build_slot2_slot3_prompt(jd_analysis, anchor_dict, critiques_formatted)
+            result = structured_llm.invoke(prompt)
+            if hasattr(result, "projects") and len(result.projects) == 2:
+                slot2, slot3 = result.projects
+                slot2.is_anchor = False
+                slot2.is_anchor_project = False
+                slot2.is_synthesized = True
+                slot3.is_anchor = False
+                slot3.is_anchor_project = False
+                slot3.is_synthesized = True
                 return {
-                    "candidate_projects": result.projects,  # type: ignore
+                    "candidate_projects": [anchor_spec, slot2, slot3],
+                    "anchor_project": anchor_dict,
                     "iteration_count": iteration_count,
                 }
-            elif isinstance(result, list) and len(result) == 3:
+            elif isinstance(result, list) and len(result) == 2:
+                slot2, slot3 = result
+                slot2.is_anchor = False
+                slot2.is_anchor_project = False
+                slot2.is_synthesized = True
+                slot3.is_anchor = False
+                slot3.is_anchor_project = False
+                slot3.is_synthesized = True
                 return {
-                    "candidate_projects": result,
+                    "candidate_projects": [anchor_spec, slot2, slot3],
+                    "anchor_project": anchor_dict,
                     "iteration_count": iteration_count,
                 }
         except Exception:
             pass
 
-    # JD-adaptive deterministic fallback when LLM output is not 3 projects
+    # --- Fallback: deterministic build_fallback_projects ---
     if jd_analysis:
-        fallback_projects = build_fallback_projects(jd_analysis)  # type: ignore
-        if len(fallback_projects) == 3:
+        fallback = build_fallback_projects(jd_analysis)
+        if fallback and len(fallback) >= 2:
+            slot2 = fallback[1] if len(fallback) > 1 else fallback[0]
+            slot3 = fallback[2] if len(fallback) > 2 else fallback[0]
+            slot2.is_anchor = False
+            slot2.is_anchor_project = False
+            slot2.is_synthesized = True
+            slot3.is_anchor = False
+            slot3.is_anchor_project = False
+            slot3.is_synthesized = True
             return {
-                "candidate_projects": fallback_projects,
+                "candidate_projects": [anchor_spec, slot2, slot3],
+                "anchor_project": anchor_dict,
                 "iteration_count": iteration_count,
             }
 
-    raise ValueError("LLM failed to synthesize exactly 3 projects. No fallback available.")
+    raise ValueError("LLM failed to synthesize project portfolio.")
 
 
 def evaluate_portfolio_node(state: AgentState) -> Dict[str, Any]:
