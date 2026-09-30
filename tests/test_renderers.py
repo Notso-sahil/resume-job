@@ -81,8 +81,8 @@ def test_render_dossier():
         with open(res, "r", encoding="utf-8") as f:
             content = f.read()
             assert "Technical Interview Defense Dossier" in content
-            assert "Architectural Trade-offs" in content
-            assert "5 Probing Interview Questions" in content
+            assert "Architectural Trade-Off Analysis" in content
+            assert "Technical Interview Defense Q&A" in content
 
 
 def test_renderers_fallback_with_no_candidate_profile():
