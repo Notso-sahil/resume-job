@@ -5,10 +5,14 @@ on:
     # Runs daily at 04:00 UTC (09:30 AM IST)
     - cron: '0 4 * * *'
   workflow_dispatch:
+    inputs:
+      commit_count:
+        description: 'Number of commits to push today (default: 4)'
+        required: false
+        default: '4'
 
 permissions:
   contents: write
-  workflows: write
 
 jobs:
   release-batch:
@@ -18,34 +22,90 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # Use a PAT so commits are attributed to YOUR GitHub account
+          # and appear as personal contributions on your profile graph.
+          # One-time setup:
+          #   1. Go to https://github.com/settings/tokens → Generate new token (classic)
+          #   2. Select 'repo' scope → Generate token → Copy it
+          #   3. In this repo: Settings → Secrets and variables → Actions
+          #   4. Add secret named: GH_PAT  (paste token value)
+          #   5. Add secret named: GH_EMAIL (your verified GitHub account email)
+          token: ${{ secrets.GH_PAT || github.token }}
 
       - name: Configure Git identity
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Must match your actual GitHub username and verified account email
+          # so contributions are counted on your profile graph
+          git config user.name "Notso-sahil"
+          git config user.email "${{ secrets.GH_EMAIL || 'sahillyaadav@gmail.com' }}"
 
-      - name: Release Next 4 Commits
+      - name: Release Next Batch of Commits
         run: |
-          git fetch origin main:refs/remotes/origin/main release-queue:refs/remotes/origin/release-queue
-          
-          # Collect commit SHAs from origin/main to origin/release-queue in chronological order
-          COMMITS=($(git log origin/main..origin/release-queue --reverse --format="%H"))
-          COUNT=${#COMMITS[@]}
-          
-          echo "Found $COUNT pending commits in release-queue."
-          
-          if [ $COUNT -eq 0 ]; then
-            echo "All commits have already been released to main! Queue is complete."
+          # Fetch latest refs for both branches
+          git fetch origin release-queue main || true
+
+          # Bail out early if release-queue does not exist on remote
+          if ! git rev-parse --verify origin/release-queue > /dev/null 2>&1; then
+            echo "Branch 'origin/release-queue' not found. Queue is empty or branch was deleted."
             exit 0
           fi
-          
-          # Slice up to 4 commits
-          STEP=$(( COUNT < 4 ? COUNT : 4 ))
-          TARGET_COMMIT=${COMMITS[$((STEP - 1))]}
-          
-          echo "Releasing $STEP commit(s). Advancing main to: $TARGET_COMMIT"
-          git push origin $TARGET_COMMIT:refs/heads/main
-          
-          REMAINING=$(( COUNT - STEP ))
-          echo "Daily batch released successfully. $REMAINING commit(s) remaining in release-queue."
+
+          # Start from the current tip of origin/main
+          git checkout main
+          git reset --hard origin/main
+
+          # Collect pending commits in chronological order (oldest first)
+          PENDING_COMMITS=$(git log --reverse --format="%H" origin/main..origin/release-queue)
+
+          if [ -z "$PENDING_COMMITS" ]; then
+            echo "All commits from release-queue have already been released to main!"
+            exit 0
+          fi
+
+          # Resolve batch size — support manual dispatch override, fall back to 4
+          INPUT_COUNT="${{ github.event.inputs.commit_count }}"
+          BATCH_SIZE="${INPUT_COUNT:-4}"
+          echo "Batch size: $BATCH_SIZE"
+
+          # Slice to batch size
+          COMMITS_TO_PUSH=$(echo "$PENDING_COMMITS" | head -n "$BATCH_SIZE")
+          ACTUAL_COUNT=$(echo "$COMMITS_TO_PUSH" | wc -l | tr -d ' ')
+
+          echo "Releasing $ACTUAL_COUNT commit(s) to main with today's timestamp..."
+
+          # Capture today's timestamp once so all commits in this batch land
+          # on the SAME calendar day → N commits = N contribution squares filled.
+          TODAY=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          # Cherry-pick each commit individually:
+          #   - --no-commit stages the changes without creating a commit
+          #   - Re-commit with your identity + today's date so GitHub assigns
+          #     the contribution to TODAY on your profile graph
+          for COMMIT in $COMMITS_TO_PUSH; do
+            MSG=$(git log -1 --format="%s" "$COMMIT")
+            BODY=$(git log -1 --format="%b" "$COMMIT")
+
+            git cherry-pick --no-commit "$COMMIT" 2>/dev/null || true
+
+            # Combine subject + body if body exists
+            if [ -n "$BODY" ]; then
+              FULL_MSG="$MSG
+
+$BODY"
+            else
+              FULL_MSG="$MSG"
+            fi
+
+            GIT_AUTHOR_DATE="$TODAY" \
+            GIT_COMMITTER_DATE="$TODAY" \
+            git commit --allow-empty \
+              -m "$FULL_MSG" \
+              --author="Notso-sahil <${{ secrets.GH_EMAIL || 'sahillyaadav@gmail.com' }}>"
+          done
+
+          # Push the re-dated commits to origin/main
+          git push origin main
+
+          TOTAL_PENDING=$(echo "$PENDING_COMMITS" | wc -l | tr -d ' ')
+          REMAINING=$((TOTAL_PENDING - ACTUAL_COUNT))
+          echo "Done. Released $ACTUAL_COUNT commit(s). $REMAINING commit(s) remaining in queue."
